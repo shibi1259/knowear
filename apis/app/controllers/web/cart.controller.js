@@ -52,6 +52,9 @@ exports.validate = (method) => {
 
 exports.addToCart = async (req, res) => {
   try {
+    // Add cache control headers for cart operations
+    res.set('Cache-Control', 'private, max-age=120'); // 2 minutes cache for cart data
+    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       helper.deliverResponse(res, 422, errors, {
@@ -78,12 +81,17 @@ exports.addToCart = async (req, res) => {
     }
     let errorResponses = [];
     let successResponses = [];
-    let cartDetails = await service.getCart(query);
-    const productDetails = await productsService.findOne({
-      isActive: true,
-      isDelete: false,
-      slug: body?.product,
-    });
+    
+    // Parallelize cart lookup and product validation for better performance
+    const [cartDetails, productDetails] = await Promise.all([
+      service.getCart(query),
+      productsService.findOne({
+        isActive: true,
+        isDelete: false,
+        slug: body?.product,
+      })
+    ]);
+    
     const isOrderQuantityValid =
       (productDetails?.stock >= body?.quantity &&
         productDetails?.maxOrderQuantity >= body?.quantity) ||
@@ -168,6 +176,17 @@ exports.addToCart = async (req, res) => {
 };
 
 exports.getCartDetails = async (req, res) => {
+  // Add mobile-specific caching and optimization
+  const userAgent = req.headers['user-agent'] || '';
+  const isMobile = /Mobile|Android|iPhone|iPad|iPod/.test(userAgent);
+  
+  // Set appropriate caching headers
+  if (isMobile) {
+    res.set('Cache-Control', 'private, max-age=120'); // 2 minutes for mobile
+    res.set('Vary', 'User-Agent');
+  } else {
+    res.set('Cache-Control', 'private, max-age=300'); // 5 minutes for desktop
+  }
 
   const { customerId, guestId, deviceToken } = res.locals?.user;
   const settings = await settingsService.findOne({});

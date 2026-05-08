@@ -43,13 +43,20 @@ exports.dashboard = async (req, res, next) => {
 
       let dashboardDetails = await dashboardService.getDashboardDetails({ isActive: true, isDelete: false }, { createdAt: -1 }, 1)
 
+      // Parallelize user data fetching for better performance
       if (userid) {
-         cartDetails = await cartService.getCart({ "customer.refid": userid, isPurchased: false, isActive: true, isDelete: false })
-         customerDetails = await customerService.getCustomer({ userid: userid, isDelete: false, isActive: true })
+         [cartDetails, customerDetails] = await Promise.all([
+            cartService.getCart({ "customer.refid": userid, isPurchased: false, isActive: true, isDelete: false }),
+            customerService.getCustomer({ userid: userid, isDelete: false, isActive: true })
+         ]);
 
-         for (let _product of customerDetails?.wishlist) {
-            let productDetails = await productService.getSingleProduct({ _id: _product, isDelete: false, isActive: true })
-            wishlistProducts.push(productDetails?.slug)
+         // Optimize wishlist processing with parallel product lookups
+         if (customerDetails?.wishlist?.length > 0) {
+            const wishlistPromises = customerDetails.wishlist.map(_product => 
+               productService.getSingleProduct({ _id: _product, isDelete: false, isActive: true })
+            );
+            const wishlistProductDetails = await Promise.all(wishlistPromises);
+            wishlistProducts = wishlistProductDetails.map(product => product?.slug).filter(Boolean);
          }
       } else {
          cartDetails = await cartService.getCart({ 'deviceToken': devicetoken, isActive: true, isDelete: false, isPurchased: false })
@@ -60,10 +67,14 @@ exports.dashboard = async (req, res, next) => {
       if (dashboardDetails.length == 0) {
          const to = new Date(new Date().setHours(0, 0, 0, 0)).toISOString()
          const from = new Date(new Date().setHours(23, 59, 59, 59)).toISOString()
-         const category = await categoryService.categoryForDashboard({ isActive: true, isDelete: false, isFeatured: true }, page, 7)
-         const brand = await brandService.brandForDashboard({ isActive: true, isDelete: false }, page, limit)
-         const collections = await collectionService.featuredCollection({ isActive: true, isDelete: false, isFeatured: true }, {}, userid, deviceToken)
-         const banners = await bannerService.bannerForWebDashboard({ isActive: true, isDelete: false, validTo: { $gte: to }, validFrom: { $lte: from } })
+         
+         // Parallelize all dashboard data fetching for major performance improvement
+         const [category, brand, collections, banners] = await Promise.all([
+            categoryService.categoryForDashboard({ isActive: true, isDelete: false, isFeatured: true }, page, 7),
+            brandService.brandForDashboard({ isActive: true, isDelete: false }, page, limit),
+            collectionService.featuredCollection({ isActive: true, isDelete: false, isFeatured: true }, {}, userid, deviceToken),
+            bannerService.bannerForWebDashboard({ isActive: true, isDelete: false, validTo: { $gte: to }, validFrom: { $lte: from } })
+         ]);
 
          if (banners.length > 0) data.push(banners[0])
 

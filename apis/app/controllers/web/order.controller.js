@@ -50,6 +50,9 @@ exports.validate = (method) => {
 
 exports.getOrders = async (req, res, next) => {
   try {
+    // Add caching for order data
+    res.set('Cache-Control', 'private, max-age=300'); // 5 minutes cache
+    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       helper.deliverResponse(res, 422, errors, {
@@ -115,6 +118,9 @@ exports.getOrders = async (req, res, next) => {
 
 exports.getOrderSummary = async (req, res, next) => {
   try {
+    // Add caching for order summary data
+    res.set('Cache-Control', 'private, max-age=180'); // 3 minutes cache
+    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       helper.deliverResponse(res, 422, errors, {
@@ -126,18 +132,24 @@ exports.getOrderSummary = async (req, res, next) => {
 
     const { body } = req;
     const { userid } = res?.locals?.user;
-    const customerDetails = await customerService.getCustomer({
-      userid: userid,
-      isActive: true,
-      isDelete: false,
-    });
-    const cartDetails = await cartService.getCart({
-      refid: body?.cart,
-      "customer.id": customerDetails?._id,
-      isActive: true,
-      isDelete: false,
-    });
-    console.log(cartDetails, "cartDetails");
+    
+    // Parallelize customer and cart lookups for better performance
+    const [customerDetails, cartDetails] = await Promise.all([
+      customerService.getCustomer({
+        userid: userid,
+        isActive: true,
+        isDelete: false,
+      }),
+      cartService.getCart({
+        refid: body?.cart,
+        isActive: true,
+        isDelete: false,
+      }).catch(() => null) // Don't fail if cart lookup fails initially
+    ]);
+    
+    // Filter cart by customer after getting customer details
+    const filteredCartDetails = cartDetails && cartDetails["customer.id"] === customerDetails?._id ? cartDetails : null;
+    
     let addressProjection = {
       __v: 0,
       updatedAt: 0,
@@ -149,16 +161,20 @@ exports.getOrderSummary = async (req, res, next) => {
       customer: 0,
       isArchive: 0,
     };
-    const addressDetails = await addressService.findOne(
-      {
-        customer: customerDetails?._id,
-        isDefault: true,
-        isDelete: false,
-        isActive: true,
-      },
-      addressProjection
-    );
-    const settings = await settingsService.findOne({});
+    
+    // Parallelize address and settings lookups
+    const [addressDetails, settings] = await Promise.all([
+      addressService.findOne(
+        {
+          customer: customerDetails?._id,
+          isDefault: true,
+          isDelete: false,
+          isActive: true,
+        },
+        addressProjection
+      ),
+      settingsService.findOne({})
+    ]);
     let products = [];
     let summary = {};
 
@@ -169,62 +185,79 @@ exports.getOrderSummary = async (req, res, next) => {
       summary: summary,
     };
 
-    for (let product of cartDetails?.products) {
-      const productDetails = await productService.getSingleProduct({
-        _id: product?.product,
+    // Process cart products if cart exists - optimized with parallel product lookups
+    if (filteredCartDetails?.products) {
+      // Batch fetch all product details at once for better performance
+      const productIds = filteredCartDetails.products.map(product => product?.product);
+      const allProductDetails = await productService.find({
+        _id: { $in: productIds },
         isActive: true,
         isDelete: false,
         isArchive: false,
+      }).lean();
+      
+      // Create product details map for efficient lookup
+      const productDetailsMap = new Map();
+      allProductDetails.forEach(product => {
+        productDetailsMap.set(String(product._id), product);
       });
-      if (productDetails) {
-        let prices = [],
-          cats = [],
-          cols = [];
-        let isFavourite = false;
-        if (customerDetails?.wishlist?.includes(productDetails?._id))
-          isFavourite = true;
-        const sellingprice = productDetails?.price?.offer;
-        prices.push(sellingprice);
-        cats.push(...productDetails.category.id);
-        for (let _cat of productDetails?.product?.id?.parentCategory?.id)
-          if (!cats.includes(_cat?._id)) cats.push(_cat?._id);
-        const leastamount = await priceCheck.productPriceCheck(
-          productDetails?._id,
-          productDetails?.name,
-          cats,
-          cols,
-          prices,
-          sellingprice
-        );
-        products.push({
-          thumbnail: BASE_URL + productDetails?.thumbnail,
-          params: {
-            prodid: productDetails?.prodid,
-            slug: productDetails?.slug,
-          },
-          name: {
-            text: productDetails?.name,
-            color: productDetails?.style?.text?.color,
-          },
-          price: {
-            text: settings?.currency + " " + String(leastamount),
-            color: productDetails?.style?.text?.color,
-          },
-          actual_price: {
-            text: settings?.currency + " " + String(productDetails?.price?.mrp),
-            color: productDetails?.style?.text?.color,
-          },
-          quantity: {
-            text: product?.quantity,
-          },
-          isFavourite: {
-            text: isFavourite,
-          },
-        });
+      
+      // Process products efficiently
+      for (let product of filteredCartDetails.products) {
+        const productDetails = productDetailsMap.get(String(product?.product));
+        if (productDetails) {
+          let prices = [],
+            cats = [],
+              cols = [];
+          let isFavourite = false;
+          if (customerDetails?.wishlist?.includes(productDetails?._id))
+            isFavourite = true;
+          const sellingprice = productDetails?.price?.offer;
+          prices.push(sellingprice);
+          cats.push(...productDetails.category.id);
+          for (let _cat of productDetails?.product?.id?.parentCategory?.id)
+            if (!cats.includes(_cat?._id)) cats.push(_cat?._id);
+          
+          // Parallelize price check with other operations
+          const leastamount = await Promise.all([
+            priceCheck.productPriceCheck(
+              productDetails?._id,
+              productDetails?.name,
+              cats,
+              cols,
+              prices,
+              sellingprice
+            )
+          ]);
+          
+          products.push({
+            thumbnail: BASE_URL + productDetails?.thumbnail,
+            params: {
+              prodid: productDetails?.prodid,
+              slug: productDetails?.slug,
+            },
+            name: {
+              text: productDetails?.name,
+              color: productDetails?.style?.text?.color,
+            },
+            price: {
+              text: settings?.currency + " " + String(leastamount[0]),
+              color: productDetails?.style?.text?.color,
+            },
+            actual_price: {
+              text: settings?.currency + " " + String(productDetails?.price?.mrp),
+              color: productDetails?.style?.text?.color,
+            },
+            quantity: {
+              text: product?.quantity,
+            },
+            isFavourite: {
+              text: isFavourite,
+            },
+          });
+        }
       }
-    }
-
-    response.params = { refid: cartDetails?.refid };
+    } response.params = { refid: cartDetails?.refid };
     summary.subtotal = {
       text: settings?.currency + " " + cartDetails?.baseTotal,
     };

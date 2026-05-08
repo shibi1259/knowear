@@ -1,4 +1,5 @@
-import React from "react";
+import React from 'react';
+import Image from 'next/image';
 
 const FeatureList = ({ data }: any) => {
   // const features = [
@@ -33,10 +34,15 @@ const FeatureList = ({ data }: any) => {
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
           <div className="py-4 px-3 md:py-6 md:px-4 text-center flex flex-col items-center">
             <div className="w-10 h-10 md:w-12 md:h-12 mb-2 md:mb-3">
-              <img
+              <Image
                 src={data?.thirdIcon}
                 alt={data?.thirdIconTitle}
                 className="w-full h-full object-contain"
+                width={48}
+                height={48}
+                sizes="(max-width: 768px) 48px, 48px"
+                loading="lazy"
+                quality={90}
               />
             </div>
             <h3 className="font-medium text-sm md:text-base mb-1">
@@ -48,10 +54,15 @@ const FeatureList = ({ data }: any) => {
 
           <div className="py-4 px-3 md:py-6 md:px-4 text-center flex flex-col items-center">
             <div className="w-10 h-10 md:w-12 md:h-12 mb-2 md:mb-3">
-              <img
+              <Image
                 src={data?.fourthIcon}
                 alt={data?.fourthIconTitle}
                 className="w-full h-full object-contain"
+                width={48}
+                height={48}
+                sizes="(max-width: 768px) 48px, 48px"
+                loading="lazy"
+                quality={90}
               />
             </div>
             <h3 className="font-medium text-sm md:text-base mb-1">
@@ -63,10 +74,15 @@ const FeatureList = ({ data }: any) => {
 
           <div className="py-4 px-3 md:py-6 md:px-4 text-center flex flex-col items-center">
             <div className="w-10 h-10 md:w-12 md:h-12 mb-2 md:mb-3">
-              <img
+              <Image
                 src={data?.fifthIcon}
                 alt={data?.fifthIconTitle}
                 className="w-full h-full object-contain"
+                width={48}
+                height={48}
+                sizes="(max-width: 768px) 48px, 48px"
+                loading="lazy"
+                quality={90}
               />
             </div>
             <h3 className="font-medium text-sm md:text-base mb-1">
@@ -77,10 +93,15 @@ const FeatureList = ({ data }: any) => {
           </div>
           <div className="py-4 px-3 md:py-6 md:px-4 text-center flex flex-col items-center">
             <div className="w-10 h-10 md:w-12 md:h-12 mb-2 md:mb-3">
-              <img
+              <Image
                 src={data?.sixthIcon}
                 alt={data?.sixthIconTitle}
                 className="w-full h-full object-contain"
+                width={48}
+                height={48}
+                sizes="(max-width: 768px) 48px, 48px"
+                loading="lazy"
+                quality={90}
               />
             </div>
             <h3 className="font-medium text-sm md:text-base mb-1">

@@ -1,8 +1,10 @@
+import { Suspense } from "react";
 import { cookies } from "next/headers";
 import { endpoints } from "./_constants/endpoints/endpoints";
 import WidgetList from "./shared/widget-list/WidgetList";
+import HomeLoading from "./loading";
 
-export default async function Home({
+export default function Home({
   searchParams,
 }: {
   searchParams: { [key: string]: string | string[] | undefined };
@@ -11,6 +13,16 @@ export default async function Home({
     typeof searchParams?.page === "string" ? Number(searchParams.page) : 1;
   const type = typeof searchParams?.type === "string" ? searchParams.type : "";
 
+  return (
+    <div>
+      <Suspense fallback={<HomeLoading />}>
+        <HomeWidgets page={page} type={type} />
+      </Suspense>
+    </div>
+  );
+}
+
+async function HomeWidgets({ page, type }: { page: number; type: string }) {
   let data;
   switch (type) {
     case "preview":
@@ -23,35 +35,31 @@ export default async function Home({
       data = await getPublishedWidgets({ page });
   }
 
-  return (
-    <div>
-      <WidgetList data={data} />
-    </div>
-  );
+  return <WidgetList data={data} />;
 }
 
 const getPublishedWidgets = async ({ page }: { page?: number }) => {
   try {
     const token = cookies().get("access_token")?.value;
     const device_token = cookies().get("device_token")?.value;
-console.log("process.env.NEXT_PUBLIC_API_URL",`${process.env.NEXT_PUBLIC_API_URL}${endpoints.publishedWidgets}?page=${page}`);
-
     const resp = await fetch(
-      `https://api.knowear.me/api/v1/w/published-widgets?page=${page}`,
+      `${process.env.NEXT_PUBLIC_API_URL}published-widgets?page=${page}`,
       {
         headers: {
           Authorization: token ? `Bearer ${token}` : "",
-          Devicetoken: `${device_token}`,
+          Devicetoken: device_token || "",
         },
-        cache: "no-cache",
-        next: { tags: ["home_widgets"] },
+        next: { revalidate: 300, tags: ["home_widgets"] },
       }
     );
-    console.log("resp?.json()",resp);
-    
+
+    if (!resp.ok) {
+      throw new Error(`Failed to fetch published widgets: ${resp.status}`);
+    }
+
     return resp?.json();
   } catch (error) {
-     console.log("Error caught in published widgets", error);
+    return { result: { widgets: [], isLastPage: true } };
   }
 };
 
@@ -65,15 +73,17 @@ const getPreviewWidgets = async ({ page }: { page?: number }) => {
       {
         headers: {
           Authorization: token ? `Bearer ${token}` : "",
-          Devicetoken: `${device_token}`,
+          Devicetoken: device_token || "",
         },
-        cache: "no-cache",
-        next: { tags: ["home_widgets"] },
+        next: { revalidate: 300, tags: ["home_widgets"] },
       }
     );
+    if (!resp.ok) {
+      throw new Error(`Failed to fetch preview widgets: ${resp.status}`);
+    }
     return resp?.json();
   } catch (error) {
-    console.log("Error caught in preview widgets", error);
+    return { result: { widgets: [], isLastPage: true } };
   }
 };
 
@@ -87,14 +97,16 @@ const getDraftWidgets = async ({ page }: { page?: number }) => {
       {
         headers: {
           Authorization: token ? `Bearer ${token}` : "",
-          Devicetoken: `${device_token}`,
+          Devicetoken: device_token || "",
         },
-        cache: "no-cache",
-        next: { tags: ["home_widgets"] },
+        next: { revalidate: 300, tags: ["home_widgets"] },
       }
     );
+    if (!resp.ok) {
+      throw new Error(`Failed to fetch draft widgets: ${resp.status}`);
+    }
     return resp?.json();
   } catch (error) {
-    console.log("Error caught in draft widgets", error);
+    return { result: { widgets: [], isLastPage: true } };
   }
 };

@@ -61,6 +61,82 @@ app.use(useragent.express());
 app.use(bodyParser.urlencoded({ extended: "true", limit: "50mb" }));
 app.use(bodyParser.json({ limit: "100mb" }));
 app.use(bodyParser.json({ type: "application/vnd.api+json" }));
+
+// Route-aware cache policy headers for Cloudflare/origin.
+app.use((req, res, next) => {
+  const pathName = req.path.toLowerCase();
+  const method = req.method.toUpperCase();
+
+  const noStorePrefixes = [
+    "/api/v1/w/admin/auth",
+    "/api/v1/w/login",
+    "/api/v1/w/email-login",
+    "/api/v1/w/register",
+    "/api/v1/w/logout",
+    "/api/v1/w/forgot-password",
+    "/api/v1/w/reset-password",
+    "/api/v1/w/validate-",
+    "/api/v1/w/guest-login",
+    "/api/v1/w/google-login",
+    "/api/v1/w/facebook-login",
+    "/api/v1/w/continue-as-guest",
+    "/api/v1/w/update-profile",
+    "/api/v1/w/cart",
+    "/api/v1/w/order",
+    "/api/v1/w/verify-payment",
+    "/api/v1/w/payment",
+    "/api/v1/w/customer",
+    "/api/v1/w/dashboard",
+    "/api/v1/w/upload",
+  ];
+
+  const publicCachePrefixes = [
+    "/api/v1/w/product-listing",
+    "/api/v1/w/product-filters",
+    "/api/v1/w/product-details",
+    "/api/v1/w/related-products",
+    "/api/v1/w/popular-search",
+    "/api/v1/w/categories",
+    "/api/v1/w/featured-categories",
+    "/api/v1/w/subcategories",
+    "/api/v1/w/mega-categories",
+    "/api/v1/w/category-landing",
+    "/api/v1/w/get-all-categories",
+    "/api/v1/w/category-by-slug",
+    "/api/v1/w/blog",
+    "/api/v1/w/content",
+    "/api/v1/w/brand",
+    "/api/v1/w/collection",
+    "/api/v1/w/offer",
+    "/api/v1/w/home-widget",
+    "/api/v1/w/seo",
+    "/api/v1/w/about",
+    "/api/v1/w/settings",
+    "/api/v1/w/mega-menu",
+  ];
+
+  const isNoStoreRoute = noStorePrefixes.some((prefix) => pathName.startsWith(prefix));
+  const isPublicGetRoute =
+    method === "GET" &&
+    publicCachePrefixes.some((prefix) => pathName.startsWith(prefix));
+
+  res.setHeader("Vary", "Accept-Encoding");
+
+  if (method !== "GET" || isNoStoreRoute) {
+    res.setHeader("Cache-Control", "private, no-store, no-cache, must-revalidate");
+    return next();
+  }
+
+  if (isPublicGetRoute) {
+    res.setHeader("Cache-Control", "public, max-age=120, s-maxage=600, stale-while-revalidate=300");
+    return next();
+  }
+
+  // Safe default for other GET responses.
+  res.setHeader("Cache-Control", "public, max-age=0, s-maxage=60, stale-while-revalidate=60");
+  return next();
+});
+
 app.all("/api/", (req, res) => {
   res.status = 404;
   res.json({ success: false, message: "Unknown end point" });

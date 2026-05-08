@@ -6,7 +6,6 @@ import Image from "next/image";
 type Props = {};
 
 const categorygrids = (props: any) => {
-  console.log("props", props.widgetDetails);
   return (
     <>
       <section className="pt-5 md:pt-10">
@@ -20,9 +19,10 @@ const categorygrids = (props: any) => {
                   key={index}
                 >
                   <Image
-                    priority={true}
+                    priority={index === 0}
+                    loading={index === 0 ? "eager" : "lazy"}
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
-                    quality={100}
+                    quality={75}
                     height={350}
                     width={200}
                     src={widgetItem?.thumbnail}

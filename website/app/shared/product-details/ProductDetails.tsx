@@ -27,7 +27,8 @@ import Image from "next/image";
 
 type Props = {
   productDetails: Product;
-  relatedProducts: { likedProducts: Product[]; relatedProducts: Product[] };
+  productSlug: string;
+  relatedProducts?: { likedProducts: Product[]; relatedProducts: Product[] };
 };
 
 const ProductDetails = (props: Props) => {
@@ -44,6 +45,9 @@ const ProductDetails = (props: Props) => {
   const [quantity, setQuantity] = React.useState("1");
   const [selectedColor, setSelectedColor] = React.useState("");
   const [selectedSize, setSelectedSize] = React.useState("");
+  const [relatedProducts, setRelatedProducts] = React.useState<Product[]>(
+    props?.relatedProducts?.relatedProducts || []
+  );
   const initialized = useRef(false);
   const productViewTriggeredRef = useRef(false);
 
@@ -162,6 +166,40 @@ const ProductDetails = (props: Props) => {
       toast({ title: "Error processing buy now", variant: "destructive" });
     }
   };
+
+  useEffect(() => {
+    let ignore = false;
+
+    // Defer non-critical related-products request so first render is faster.
+    const fetchRelatedProducts = async () => {
+      try {
+        if (props?.relatedProducts?.relatedProducts?.length) return;
+
+        const deviceToken = Cookies.get("device_token") || "";
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/related-products/${props.productSlug}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Devicetoken: deviceToken,
+              Authorization: token ? `Bearer ${token}` : "",
+            },
+          }
+        );
+        if (!res.ok || ignore) return;
+        const data = await res.json();
+        if (!ignore) {
+          setRelatedProducts(data?.result?.relatedProducts || []);
+        }
+      } catch (error) {}
+    };
+
+    fetchRelatedProducts();
+    return () => {
+      ignore = true;
+    };
+  }, [props.productSlug, token]);
 
   useEffect(() => {
     if (selectedColor && selectedSize && isRendered) {
@@ -357,15 +395,12 @@ const ProductDetails = (props: Props) => {
               </div>
             </div>
             <div className="relative pb-[30px] max-md:container max-md:max-w-full">
-              {props?.relatedProducts?.relatedProducts &&
-                props.relatedProducts.relatedProducts.length > 0 && (
+              {relatedProducts && relatedProducts.length > 0 && (
                   <div className="mt-6 lg:mt-12">
                     <div className="text-2xl lg:text-4xl font-semibold mb-6">
                       You May Also Like
                     </div>
-                    <Carousel
-                      products={props.relatedProducts.relatedProducts}
-                    />
+                    <Carousel products={relatedProducts} />
                   </div>
                 )}
             </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, TouchEvent, MouseEvent } from "react";
+import Image from 'next/image';
 
 // Define types for component props
 interface WorkoutSectionProps {
@@ -150,16 +151,28 @@ const WorkoutSection: React.FC<WorkoutSectionProps> = ({ data }) => {
     return (
       <div className="grid grid-cols-2 gap-4">
         <div className="relative">
-          <img
-            src={data?.images[0] as string}
-            alt={typeof data?.images[0] === 'object' ? data?.images[0]?.alt : undefined}
+          <Image
+            src={data?.images[0] as string || ''}
+            alt={typeof data?.images[0] === 'object' ? data?.images[0]?.alt || 'Workout image 1' : 'Workout image 1'}
             className="w-full h-full object-cover"
+            width={600}
+            height={400}
+            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 40vw, 30vw"
+            loading="lazy"
+            quality={85}
+            placeholder="blur"
+            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/8A8A"
           />
           <div className="absolute top-[20px] left-[2px] md:top-16 md:left-10 flex flex-col items-center">
-            <img
+            <Image
               src={data?.seventhIcon}
               alt={data?.seventhIconTitle}
               className="w-8 h-8"
+              width={32}
+              height={32}
+              sizes="32px"
+              loading="lazy"
+              quality={90}
             />
             <p className="text-black text-sm font-medium">
               {data?.seventhIconTitle}
@@ -172,16 +185,28 @@ const WorkoutSection: React.FC<WorkoutSectionProps> = ({ data }) => {
         </div>
 
         <div className="relative">
-          <img
-            src={data?.images[1] as string}
-            alt={typeof data?.images[1] === 'object' ? data?.images[1]?.alt : undefined}
+          <Image
+            src={data?.images[1] as string || ''}
+            alt={typeof data?.images[1] === 'object' ? data?.images[1]?.alt || 'Workout image 2' : 'Workout image 2'}
             className="w-full h-full object-cover"
+            width={600}
+            height={400}
+            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 40vw, 30vw"
+            loading="lazy"
+            quality={85}
+            placeholder="blur"
+            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/8A8A"
           />
           <div className="absolute top-[20px] right-[2px] md:top-16 md:right-10 flex flex-col items-center">
-            <img
+            <Image
               src={`https://knowearcommerce.s3.ap-south-1.amazonaws.com/${data?.eighthIcon}`}
               alt={data?.eighthIconTitle}
               className="w-8 h-8"
+              width={32}
+              height={32}
+              sizes="32px"
+              loading="lazy"
+              quality={90}
             />
             <p className="text-white text-sm font-medium">
               {data?.eighthIconTitle}
@@ -218,19 +243,29 @@ const WorkoutSection: React.FC<WorkoutSectionProps> = ({ data }) => {
         >
           {data?.images.map((image, index) => (
             <div key={index} className="w-full flex-shrink-0 relative">
-              <img
+              <Image
                 src={typeof image === 'string' ? image : ''}
                 alt={typeof image === 'object' ? image?.alt || `Workout image ${index + 1}` : `Workout image ${index + 1}`}
                 className="w-full h-64 object-cover"
+                width={800}
+                height={400}
+                sizes="100vw"
+                loading={index === 0 ? "eager" : "lazy"}
+                quality={85}
                 draggable="false"
               />
               
               {/* Icon overlay */}
               <div className="absolute top-4 left-0 right-0 flex flex-col items-center max-w-[119px]">
-                <img
+                <Image
                   src={getCurrentIconData(index).icon}
                   alt={getCurrentIconData(index).title}
                   className="w-8 h-8"
+                  width={32}
+                  height={32}
+                  sizes="32px"
+                  loading="lazy"
+                  quality={90}
                   draggable="false"
                 />
                 <p className={`${index === 1 ? 'text-white' : 'text-black'} text-sm font-medium mt-1`}>

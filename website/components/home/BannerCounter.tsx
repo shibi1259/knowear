@@ -31,6 +31,7 @@ const BannerCounter = ({ widgetDetails }: Props) => {
           loop
           playsInline
           webkit-playsinline
+          preload="none"
           src={"/AUS.mp4"}
           className="absolute top-0 left-0 w-full h-full object-cover"
         ></video>

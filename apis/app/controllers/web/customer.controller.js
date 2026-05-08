@@ -189,40 +189,49 @@ exports.findOne = async (req, res, next) => {
 
 exports.getWishlist = async (req, res, next) => {
    try {      
+      // Add caching for wishlist data
+      res.set('Cache-Control', 'private, max-age=300'); // 5 minutes cache
+      
       let products = []
       const { userid } = res?.locals?.user;
-      const [
-         response,
-         settings
-      ] = await Promise.all([
+      
+      // First get customer and settings
+      const [response, settings] = await Promise.all([
          service.getCustomer({ userid: res?.locals?.user?.userid }),
          settingsService.findOne({})
-      ])
-      for (let product of response?.wishlist) {
-         const productResponse = getProductResponse(product, settings)
-         const cartDetails = await cartService.getCart({
+      ]);
+      
+      // Get cart details after we have the customer ID
+      let cartDetails = null;
+      if (response?._id) {
+         cartDetails = await cartService.getCart({
             "customer": response?._id,
             isPurchased: false,
             isActive: true,
             isDelete: false,
-          });
-          if (cartDetails) {
-            for (let cartproduct of cartDetails?.products) {
-               // console.log("product",cartproduct?.product?._id);
-               // console.log("productResponse",productResponse?.id); 
-              if (
-                String(cartproduct?.product?._id) == String(productResponse?.id)
-              ) {
-               productResponse.isCart = true;
-              }
-            }
-          }
-         products.push({...productResponse})
+         }).catch(() => null); // Don't fail if cart lookup fails
+      }
+      
+      // Get cart product IDs once for efficient lookup
+      const cartProductIds = new Set();
+      if (cartDetails?.products) {
+         cartDetails.products.forEach(cartproduct => {
+            cartProductIds.add(String(cartproduct?.product?._id));
+         });
+      }
+      
+      // Process wishlist products efficiently
+      if (response?.wishlist?.length > 0) {
+         products = response.wishlist.map(product => {
+            const productResponse = getProductResponse(product, settings);
+            // Efficient cart check using Set lookup
+            productResponse.isCart = cartProductIds.has(String(productResponse?.id));
+            return productResponse;
+         });
       }
 
       helper.deliverResponse(res, 200, products, messages.successResponse);
    } catch (error) {
-      console.log('Error caught in wislist API :: ' + error);
       helper.deliverResponse(res, 422, {}, messages.serverError);
    }
 }

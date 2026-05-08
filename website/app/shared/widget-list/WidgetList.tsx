@@ -1,8 +1,6 @@
 "use client";
+import dynamic from "next/dynamic";
 import CategoryGrids from "@/components/home/CategoryGrids";
-import ProductSlider from "@/app/shared/product-slider/ProductSlider";
-import VideoBanner from "@/components/home/VideoBanner";
-import BannerCounter from "@/components/home/BannerCounter";
 import HeroBanner from "@/components/home/HeroBanner";
 
 import { useEffect, useState } from "react";
@@ -11,10 +9,23 @@ import api from "@/config/api.interceptor";
 import { useSearchParams } from "next/navigation";
 import { useInView } from "react-intersection-observer";
 import AppLoader from "../app-loader/AppLoader";
-import CustomHtml from "@/components/home/CustomHtml";
+
+const ProductSlider = dynamic(
+  () => import("@/app/shared/product-slider/ProductSlider"),
+  { ssr: true }
+);
+const VideoBanner = dynamic(() => import("@/components/home/VideoBanner"), {
+  ssr: true,
+});
+const BannerCounter = dynamic(() => import("@/components/home/BannerCounter"), {
+  ssr: true,
+});
+const CustomHtml = dynamic(() => import("@/components/home/CustomHtml"), {
+  ssr: true,
+});
 
 export default function WidgetList({ data }: any) {
-  const [widgetsList, setWidgetList] = useState(data?.result?.widgets);
+  const [widgetsList, setWidgetList] = useState(data?.result?.widgets || []);
   const [isLoading, setisLoading] = useState(false);
   const { ref, inView } = useInView();
   const [params, setParams] = useState({ page: 1 });
@@ -33,7 +44,7 @@ export default function WidgetList({ data }: any) {
         page: prevParams.page + 1,
       }));
 
-      setWidgetList([...widgetsList, ...resp?.data?.result?.widgets]);
+      setWidgetList((prev: any[]) => [...prev, ...(resp?.data?.result?.widgets || [])]);
       setIsLastPage(resp?.data?.result?.isLastPage);
       setisLoading(false);
     } catch (error) {
@@ -51,11 +62,10 @@ export default function WidgetList({ data }: any) {
         ...prevParams,
         page: prevParams.page + 1,
       }));
-      setWidgetList([...widgetsList, ...resp?.data?.result?.widgets]);
+      setWidgetList((prev: any[]) => [...prev, ...(resp?.data?.result?.widgets || [])]);
       setIsLastPage(resp?.data?.result?.isLastPage);
       setisLoading(false);
     } catch (error) {
-      console.log("Error caught in preview widgets", error);
       setisLoading(false);
     }
   };
@@ -71,11 +81,10 @@ export default function WidgetList({ data }: any) {
         ...prevParams,
         page: prevParams.page + 1,
       }));
-      setWidgetList([...widgetsList, ...resp?.data?.result?.widgets]);
+      setWidgetList((prev: any[]) => [...prev, ...(resp?.data?.result?.widgets || [])]);
       setIsLastPage(resp?.data?.result?.isLastPage);
       setisLoading(false);
     } catch (error) {
-      console.log("Error caught in draft widgets", error);
       setisLoading(false);
     }
   };
@@ -93,9 +102,7 @@ export default function WidgetList({ data }: any) {
       } else {
         await getPublishedWidgets();
       }
-    } catch (error) {
-      console.log(error);
-    }
+    } catch (error) {}
   };
 
   useEffect(() => {
@@ -107,7 +114,6 @@ export default function WidgetList({ data }: any) {
     <>
       <div>
         {widgetsList?.map((item: any, index: any) => {
-          console.log("item", item);
           switch (item?.type) {
             case "image-slider":
               return <CategoryGrids widgetDetails={item} key={index} />;

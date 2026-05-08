@@ -24,49 +24,76 @@ const WishlistButton = (props: Props) => {
   const { getWishlistDetails } = useContext(StateContext);
   const token = Cookies.get("access_token");
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [optimisticWishlist, setOptimisticWishlist] = useState(isWishlisted);
 
-  const handleWishlist = () => {
-  
-    if (!token) {
-      toast({ title: "Please login, to add to wishlist"});
-      return;
-    }
+  // Debounce for mobile rapid clicks
+  const debouncedHandleWishlist = React.useCallback(
+    () => {
+      if (isLoading) return; // Prevent multiple clicks
+      
+      setIsLoading(true);
+      
+      if (!token) {
+        toast({ title: "Please login, to add to wishlist"});
+        setIsLoading(false);
+        return;
+      }
 
-    api
-      .post(endpoints.manageWishList, { slug: productSlug })
-      .then((res) => {
-        if (res?.data?.errorCode == 0) {
-          getWishlistDetails();
-        } else {
-        }
-      })
-      .catch((error: any) => { });
-  };
+      api
+        .post(endpoints.manageWishList, { slug: productSlug })
+        .then((res) => {
+          if (res?.data?.success) {
+            // Optimistic update - update UI immediately
+            setOptimisticWishlist(!optimisticWishlist);
+            // Refresh wishlist in background
+            getWishlistDetails();
+          } else {
+            toast({ title: "Failed to update wishlist", variant: "destructive" });
+          }
+        })
+        .catch((error: any) => {
+          toast({ title: "Failed to update wishlist", variant: "destructive" });
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    },
+    [productSlug, token, isLoading, optimisticWishlist, getWishlistDetails, toast]
+  );
+
+  // Debounce timer for mobile
+  const debouncedFn = React.useMemo(
+    () => debouncedHandleWishlist,
+    [debouncedHandleWishlist]
+  );
 
   return (
     <>
       {isPdp ? (
         <Button
           className="p-0 h-[50px] w-[50px] bg-transparent   hover:scale-110 border border-[#D1D5DB] rounded-none"
-          onClick={() => handleWishlist()}
+          onClick={() => debouncedFn()}
+          disabled={isLoading}
         >
-          <WishListPdp fill={isWishlisted ? "#000" : "#fff"} />
+          <WishListPdp fill={optimisticWishlist ? "#000" : "#fff"} />
         </Button>
       ) : (
         <Button
           className="p-0 h-[unset] bg-transparent hover:scale-110 border-none rounded-none"
-          onClick={() => handleWishlist()}
+          onClick={() => debouncedFn()}
+          disabled={isLoading}
         >
           {isCart ? (
             <>
               <WishList2
                 className="h-[21px] w-6 max-md:hidden"
-                fill={isWishlisted ? "#000" : "#fff"}
+                fill={optimisticWishlist ? "#000" : "#fff"}
               />
-              <WishList3 className="md:hidden" fill={isWishlisted ? "#000" : "#fff"} />
+              <WishList3 className="md:hidden" fill={optimisticWishlist ? "#000" : "#fff"} />
             </>
           ) : (
-            <WishList fill={isWishlisted ? "#000" : "#fff"} className="h-[20px] w-[20px]" />
+            <WishList fill={optimisticWishlist ? "#000" : "#fff"} className="h-[20px] w-[20px]" />
           )}
         </Button>
       )}

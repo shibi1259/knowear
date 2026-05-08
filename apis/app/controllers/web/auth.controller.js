@@ -94,18 +94,20 @@ exports.register = async (req, res) => {
 
     const { body } = req;
     const { deviceToken, firebaseToken } = res?.locals?.user;
-    const settings = await db.General.findOne();
     const saltRounds = constant.common.SALT_ROUNDS;
 
-    const cartDetails = await cartService.getCart({
-      deviceToken: deviceToken,
-      isActive: true,
-      isDelete: false,
-    });
-
-    const userDetails = await service.getCustomerDetails({
-      $or: [{ email: body.email, isDelete: false }],
-    });
+    // Parallelize database operations for faster registration
+    const [settings, cartDetails, userDetails] = await Promise.all([
+      db.General.findOne(),
+      cartService.getCart({
+        deviceToken: deviceToken,
+        isActive: true,
+        isDelete: false,
+      }),
+      service.getCustomerDetails({
+        $or: [{ email: body.email, isDelete: false }],
+      })
+    ]);
 
     if (userDetails) {
       return helper.deliverResponse(res, 422, {}, messages.ALREADY_REGISTERED);

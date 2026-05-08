@@ -49,9 +49,10 @@ const VideoBanner = ({ checkoutBanner = false, widgetDetails }: Props) => {
             }
             alt="Video Banner"
             fill
-            quality={100}
+            quality={75}
             className="object-cover"
-            priority
+            priority={false}
+            loading="lazy"
           />
 
           {/* Video Button - Moved left from center */}
@@ -100,6 +101,7 @@ const VideoBanner = ({ checkoutBanner = false, widgetDetails }: Props) => {
                         loop
                         playsInline
                         webkit-playsinline
+                        preload="none"
                         src={
                           checkoutBanner
                             ? "/KW_How_it_works.mp4"

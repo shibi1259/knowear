@@ -207,9 +207,15 @@ exports.customerReferer = async (email, data) => {
 
 exports.update = async (query, action) => {
     try {
-        let client = await db.Customer.updateOne(query, action, { new: true, upsert: false, useFindAndModify: false }).exec()
+        let client = await db.Customer.updateOne(query, action, { 
+            new: true, 
+            upsert: false, 
+            useFindAndModify: false,
+            runValidators: false // Skip validation for performance
+        }).exec()
         return client
     } catch (error) {
+        console.error('Customer update error:', error);
         throw (error)
     }
 }

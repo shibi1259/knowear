@@ -1288,24 +1288,22 @@ exports.newPlp = async (req, res) => {
   const { body } = req;
   let matchQuery = { isActive: true, isDelete: false, isVisible: true },
     sort = {};
-
-  // Single settings fetch — shared across request
-  const settings = await settingsService.findOne({});
+  const settings = await settingsService.findOne();
 
   if (body.category && body.category.length) {
+    // matchQuery["categories.slug"] = { $in: body.category };
     const categoryIds = await db.Category.find(
-      { slug: { $in: body.category } },
+      { slug: { $in: body.category } }, // Resolve slugs
       { _id: 1 }
     ).lean();
     matchQuery["category"] = { $in: categoryIds.map(cat => cat._id) };
   }
-
-  let collections;
-  if (body.collection?.length) {
-    collections = await db.Collection.find(
-      { slug: { $in: body.collection } }
+  let collections
+  if(body.collection?.length){
+     collections= await db.Collection.find(
+      {slug:{$in:body.collection}}
     ).lean();
-    const collectionProductIds = collections.flatMap(c => c.products);
+    const collectionProductIds = collections.flatMap(collection => collection.products);
     matchQuery["_id"] = { $in: collectionProductIds };
   }
 
@@ -1319,11 +1317,17 @@ exports.newPlp = async (req, res) => {
     let discountQuery = {
       $expr: {
         $gte: [
-          { $divide: [{ $subtract: ["$price.mrp", "$price.selling"] }, "$price.mrp"] },
+          {
+            $divide: [
+              { $subtract: ["$price.mrp", "$price.selling"] },
+              "$price.mrp",
+            ],
+          },
           body.discount / 100,
         ],
       },
     };
+
     matchQuery = { ...matchQuery, ...discountQuery };
   }
 
@@ -1331,15 +1335,21 @@ exports.newPlp = async (req, res) => {
     matchQuery["$or"] = [
       { name: { $regex: body.search, $options: "i" } },
       { sku: { $regex: body.search, $options: "i" } },
+      // { searchKeywords: { $regex: body.search, $options: "i" } },
+      // { metaTitle: { $regex: body.search, $options: "i" } },
+      // { metaKeywords: { $regex: body.search, $options: "i" } },
+      // { metaDescription: { $regex: body.search, $options: "i" } },
     ];
   }
 
   if (body.priceFrom && !body.priceTo) {
     matchQuery["price.selling"] = { $gte: Number(body.priceFrom) };
   }
+
   if (body.priceTo && !body.priceFrom) {
     matchQuery["price.selling"] = { $lte: Number(body.priceTo) };
   }
+
   if (body.priceFrom && body.priceTo) {
     matchQuery["price.selling"] = {
       $gte: Number(body.priceFrom),
@@ -1349,52 +1359,74 @@ exports.newPlp = async (req, res) => {
 
   if (body.sort) {
     switch (body.sort) {
-      case "0": sort = { "price.selling": 1 }; break;
-      case "1": sort = { "price.selling": -1 }; break;
-      case "2": sort = { createdAt: -1 }; break;
-      case "3": sort = { createdAt: 1 }; break;
-      case "4": sort = { name: -1 }; break;
-      case "5": sort = { name: 1 }; break;
-      default:  sort = {};
+      case "0":
+        sort = { "price.selling": 1 };
+        break;
+      case "1":
+        sort = { "price.selling": -1 };
+        break;
+      case "2":
+        sort = { createdAt: -1 };
+        break;
+      case "3":
+        sort = { createdAt: 1 };
+        break;
+      case "4":
+        sort = { name: -1 };
+        break;
+      case "5":
+        sort = { name: 1 };
+      default:
+        sort = {};
     }
   }
 
-  const page  = body.page  || 1;
-  const limit = body.limit || 20;
-
   let aggregate = [
     {
-      $match: { isDelete: false, isActive: true },
+      $match: {
+        isDelete: false,
+        isActive: true,
+        // isVisible: true,
+      },
     },
-    ...(Object.keys(sort).length ? [{ $sort: sort }] : []),
+    {
+      $sort: { ...sort },
+    },
     {
       $facet: {
         products: [
           { $match: matchQuery },
-          { $skip: (page - 1) * limit },
-          { $limit: limit },
+          { $skip: (body.page - 1) * body.limit },
+          { $limit: body.limit },
         ],
         categories: [
           { $match: matchQuery },
           {
             $lookup: {
-              from: "categories",
-              localField: "category",
-              foreignField: "_id",
-              as: "categoryDetails",
+              from: "categories", // collection name to join with
+              localField: "category", // field in the products document
+              foreignField: "_id", // field in the categories collection
+              as: "categoryDetails", // alias for the joined categories
             },
           },
-          { $unwind: { path: "$categoryDetails", preserveNullAndEmptyArrays: true } },
+          {
+            $unwind: {
+              path: "$categoryDetails",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
           {
             $group: {
-              _id: { title: "$categoryDetails.name", slug: "$categoryDetails.slug" },
+              _id: {
+                title: "$categoryDetails.name",
+                slug: "$categoryDetails.slug",
+              },
             },
           },
           { $project: { _id: 0, title: "$_id.title", slug: "$_id.slug" } },
           { $sort: { title: 1 } },
         ],
         attributes: [
-          { $match: matchQuery },
           { $unwind: "$attributes" },
           {
             $match: {
@@ -1412,7 +1444,12 @@ exports.newPlp = async (req, res) => {
             $addFields: {
               attributes: {
                 $map: {
-                  input: { $sortArray: { input: "$attributes", sortBy: { attribute: 1 } } },
+                  input: {
+                    $sortArray: {
+                      input: "$attributes",
+                      sortBy: { attribute: 1 },
+                    },
+                  }, // Sort alphabetically by attribute value
                   as: "item",
                   in: "$$item",
                 },
@@ -1448,8 +1485,8 @@ exports.newPlp = async (req, res) => {
     {
       $addFields: {
         productsData: {
-          page: page,
-          per_page: limit,
+          page: body.page,
+          per_page: body.limit,
           total_items: { $arrayElemAt: ["$totalProducts.count", 0] },
           last_page: {
             $cond: {
@@ -1458,7 +1495,7 @@ exports.newPlp = async (req, res) => {
                   { $arrayElemAt: ["$totalProducts.count", 0] },
                   {
                     $add: [
-                      { $multiply: [page - 1, limit] },
+                      { $multiply: [body.page - 1, body.limit] },
                       { $size: "$products" },
                     ],
                   },
@@ -1496,50 +1533,64 @@ exports.newPlp = async (req, res) => {
   let productItems = [];
 
   filters.price = {
-    min: (filters["price"]?.[0]?.["min"]) || 0,
-    max: (filters["price"]?.[0]?.["max"]) || 0,
-    low: (filters["priceRange"]?.[0]?.["low"]) || 0,
-    high: (filters["priceRange"]?.[0]?.["high"]) || 0,
+    min:
+      (filters["price"] &&
+        filters["price"].length > 0 &&
+        filters["price"][0]["min"]) ||
+      0,
+    max:
+      (filters["price"] &&
+        filters["price"].length > 0 &&
+        filters["price"][0]["max"]) ||
+      0,
+    low:
+      (filters["priceRange"] &&
+        filters["priceRange"].length > 0 &&
+        filters["priceRange"][0]["low"]) ||
+      0,
+    high:
+      (filters["priceRange"] &&
+        filters["priceRange"].length > 0 &&
+        filters["priceRange"][0]["high"]) ||
+      0,
   };
 
   if (filters.origins && filters.origins.length > 0) {
     const origins = filters.origins[0];
-    filters.origins = origins.filter((origin) => Object.keys(origin).length > 0);
+    filters.origins = origins.filter(
+      (origin) => Object.keys(origin).length > 0
+    );
   }
 
-  // ✅ FIX: Batch all getAttributes calls in parallel instead of sequential await in loop
-  const uniqueParentIds = [...new Set(
-    productDetails.product_items
-      .map(p => p.parentId?.toString())
-      .filter(Boolean)
-  )];
-
-  const attributesMap = {};
-  await Promise.all(
-    uniqueParentIds.map(async (parentId) => {
-      attributesMap[parentId] = await getAttributes(parentId);
+  productDetails.product_items = await Promise.all(
+    productDetails.product_items.map(async (product) => {
+      return {
+        ...product,
+        attributesItems: await getAttributes(product.parentId),
+      };
     })
   );
 
   productDetails.product_items.forEach((product) => {
-    const attributesItems = attributesMap[product.parentId?.toString()] || [];
-    let productIcons = product?.productIcons || [];
-
+    let productIcons = product?.productIcons;
     if (product.collections && product.collections.length > 0) {
       product.collections.forEach(
-        (collection) => (productIcons = [...productIcons, ...(collection.icons || [])])
+        (collection) => (productIcons = [...productIcons, ...collection.icons])
       );
     }
 
-    productIcons = productIcons?.map((icon) => `${process.env.BASE_URL}${icon}`);
+    productIcons = productIcons?.map(
+      (icon) => `${process.env.BASE_URL}${icon}`
+    );
     const response = getProductResponse(
       product,
       settings,
       process.env.BASE_URL,
       productIcons,
-      attributesItems,
+      product.attributesItems,
       collections
     );
+
     productItems.push(response);
   });
 

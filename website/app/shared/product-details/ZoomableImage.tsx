@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, MouseEvent, useEffect } from 'react';
 import Image from 'next/image';
 
 interface ZoomableImageProps {
@@ -130,14 +130,19 @@ const ZoomableImage = ({ src, alt, width, height, priority, onSlideChange }: Zoo
           transform: isZoomed ? `scale(2) translate(${position.x}px, ${position.y}px)` : 'scale(1)',
         }}
       >
-        <img
+        <Image
           src={src}
           alt={alt}
           width={width}
           height={height}
           className="max-h-[90vh] w-auto object-contain select-none"
-        //   priority={priority}
+          priority={priority || false}
           draggable={false}
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 60vw"
+          loading={priority ? "eager" : "lazy"}
+          quality={85}
+          placeholder="blur"
+          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/8A8A"
         />
       </div>
       {isZoomed && (

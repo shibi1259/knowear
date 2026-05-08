@@ -1,6 +1,6 @@
 import React from "react";
 import LeggingsCategoryPage from "@/app/shared/category/CategoryLanding";
-import { redirect, useParams } from "next/navigation";
+import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { endpoints } from "@/app/_constants/endpoints/endpoints";
 
@@ -30,8 +30,6 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 const ProductListing = async ({ params }: any) => {
-  const productResponse = await getProductDetails(params.slug);
-
   return (
     <div className="container max-w-full">
       <LeggingsCategoryPage categorySlug={params.slug} />
@@ -54,6 +52,7 @@ const getProductDetails = async (slug: string) => {
         Authorization: token ? `Bearer ${token}` : "",
       },
       body: JSON.stringify({ category: slug }),
+      next: { revalidate: 300 },
     }
   );
   if (!rep.ok) {

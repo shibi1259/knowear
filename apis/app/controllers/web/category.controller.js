@@ -29,6 +29,8 @@ exports.validate = (method) => {
 
 exports.getCategories = async (req, res, next) => {
    try {
+      // Add caching for category data
+      res.set('Cache-Control', 'public, max-age=1800'); // 30 minutes cache
 
       !req.body.page ? body.page = 1 : null;
       !req.body.limit ? body.limit = 10 : null;
@@ -41,7 +43,6 @@ exports.getCategories = async (req, res, next) => {
          "error_message": messages.successResponse.error_message
       });
    } catch (error) {
-      console.log("error caught in getCategories controller: " + error)
       helper.deliverResponse(res, 422, {}, {
          "error_code": messages.serverError.error_code,
          "error_message": messages.serverError.error_message
@@ -97,24 +98,24 @@ exports.getCategoryBySlug = async (req, res, next) => {
 
 exports.getFeaturedCategories = async (req, res, next) => {
    try {
+      // Add caching for featured categories
+      res.set('Cache-Control', 'public, max-age=3600'); // 1 hour cache
+      
       let projection = { file: 1, name: 1, slug: 1 }
       const response = await service.getCategories({ isActive: true, isDelete: false }, projection, { name: 1 })
 
-      let categories = []
-      for (let _category of response) {
-         categories.push({
-            "image": _category?.thumbnail ? BASE_URL + _category?.thumbnail?.path : null,
-            "text": { "text": _category?.name, },
-            "params": { "slug": _category?.slug }
-         })
-      }
+      // Optimize category mapping with map instead of for loop
+      let categories = response.map(_category => ({
+         "image": _category?.thumbnail ? BASE_URL + _category?.thumbnail?.path : null,
+         "text": { "text": _category?.name, },
+         "params": { "slug": _category?.slug }
+      }));
 
       helper.deliverResponse(res, 200, categories, {
          "error_code": messages.successResponse.error_code,
          "error_message": messages.successResponse.error_message
       });
    } catch (error) {
-      console.log("error caught in getFeaturedCategories controller: " + error)
       helper.deliverResponse(res, 422, {}, {
          "error_code": messages.serverError.error_code,
          "error_message": messages.serverError.error_message

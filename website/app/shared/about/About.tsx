@@ -1,5 +1,6 @@
 "use client";
 import { useCounter } from "@/hooks/useCounter";
+import Image from 'next/image';
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
@@ -117,10 +118,17 @@ const About = (props: Props) => {
             </div> */}
 
 <div className="lg:hidden relative">
-  <img
+  <Image
     src={`https://knowearcommerce.s3.ap-south-1.amazonaws.com/${aboutData?.section1?.mobileBanner1}`}
     alt="Women's Collection Mobile"
     className="w-full"
+    width={800}
+    height={600}
+    sizes="100vw"
+    loading="lazy"
+    quality={85}
+    placeholder="blur"
+    blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/8A8A"
   />
   <div className="absolute bottom-6 left-0 right-0 text-center">
     <Link
@@ -154,10 +162,17 @@ const About = (props: Props) => {
           
             {/* Desktop Banner */}
             <div className="hidden lg:block relative">
-              <img 
+              <Image 
                 src={`https://knowearcommerce.s3.ap-south-1.amazonaws.com/${aboutData?.section1?.banner1}`} 
                 alt="Women's Collection Desktop"
                 className="w-full"
+                width={1200}
+                height={600}
+                sizes="(max-width: 768px) 0vw, (max-width: 1200px) 90vw, 80vw"
+                loading="lazy"
+                quality={85}
+                placeholder="blur"
+                blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/8A8A"
               />
               <div className="absolute bottom-8 left-0 right-0 flex justify-center">
                 {/* <Link
@@ -192,10 +207,18 @@ const About = (props: Props) => {
 
             {/* Desktop Banner */}
             <div className="hidden lg:block relative">
-              <img 
+              <Image 
                 src={`https://knowearcommerce.s3.ap-south-1.amazonaws.com/${aboutData?.section1?.banner2}`}
                 alt="Accessories Desktop Banner"
                 className="w-full"
+                width={1200}
+                height={600}
+                sizes="(max-width: 768px) 0vw, (max-width: 1200px) 90vw, 80vw"
+                loading="eager"
+                quality={85}
+                priority={true}
+                placeholder="blur"
+                blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/8A8A"
               />
               <div className="absolute bottom-8 left-0 right-0 flex justify-center">
                 <Link
@@ -246,10 +269,18 @@ const About = (props: Props) => {
               </div>
             </div> */}
             <div className="lg:hidden relative">
-  <img
+  <Image
     src={`https://knowearcommerce.s3.ap-south-1.amazonaws.com/${aboutData?.section2?.mobileBanner2}`}
     alt="Accessories Mobile Banner"
     className="w-full"
+    width={800}
+    height={600}
+    sizes="100vw"
+    loading="eager"
+    quality={85}
+    priority={true}
+    placeholder="blur"
+    blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/8A8A"
   />
   <div className="absolute inset-x-0 bottom-8 text-center">
     <Link
@@ -270,17 +301,33 @@ const About = (props: Props) => {
   <div className="container max-w-full">
     <div className="relative">
       {/* Desktop Banner Image (hidden on mobile) */}
-      <img
+      <Image
         src={`https://knowearcommerce.s3.ap-south-1.amazonaws.com/${aboutData?.section2?.banner}`}
         className="w-full hidden md:block"
         alt="Woman in athletic wear - desktop"
+        width={1200}
+        height={600}
+        sizes="(max-width: 768px) 0vw, (max-width: 1200px) 90vw, 80vw"
+        loading="eager"
+        quality={85}
+        priority={true}
+        placeholder="blur"
+        blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/8A8A"
       />
       
       {/* Mobile Banner Image (hidden on desktop) */}
-      <img
+      <Image
         src={`https://knowearcommerce.s3.ap-south-1.amazonaws.com/${aboutData?.section3?.mobileBanner3}`}
         className="w-full block md:hidden"
         alt="Woman in athletic wear - mobile"
+        width={800}
+        height={600}
+        sizes="100vw"
+        loading="eager"
+        quality={85}
+        priority={true}
+        placeholder="blur"
+        blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/8A8A"
       />
       
       {/* Text and Button positioned over the banner - left aligned */}

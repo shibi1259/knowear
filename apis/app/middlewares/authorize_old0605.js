@@ -27,25 +27,22 @@ exports.verifyToken = (req, res, next) => {
 
 exports.verifyGuest = async (req, res, next) => {
     const header = req.headers.authorization;
-    const deviceToken = req.headers.devicetoken;
-    if (!header && deviceToken) {
-        // Check if guest already exists FIRST before counting
-        const guestDetails = await guestService.getGuestDetails({ deviceToken, isDelete: false });
+    const userAgent = req.useragent
+    if (!header) {
+        let guestPayload = {
+            name: `Guest #${await guestService.count() + 1}`,
+            refid: await guestService.count() + 1,
+            deviceToken: req.headers.devicetoken,
+            deviceDetails: {
+                os: userAgent?.os,
+                platform: userAgent?.platform,
+                type: userAgent?.isDesktop ? 'Desktop' : userAgent?.isMobile ? 'Mobile' : 'Tablet'
+            }
+        }
+
+        const guestDetails = await guestService.getGuestDetails({ deviceToken: req.headers.devicetoken, isDelete: false })
         if (!guestDetails) {
-            const userAgent = req.useragent;
-            // Only call count() once when we actually need to create a guest
-            const count = await guestService.count();
-            let guestPayload = {
-                name: `Guest #${count + 1}`,
-                refid: count + 1,
-                deviceToken,
-                deviceDetails: {
-                    os: userAgent?.os,
-                    platform: userAgent?.platform,
-                    type: userAgent?.isDesktop ? 'Desktop' : userAgent?.isMobile ? 'Mobile' : 'Tablet'
-                }
-            };
-            let guest = await guestService.createGuest(guestPayload);
+            let guest = await guestService.createGuest(guestPayload)
             res.locals.guestDetails = guest?.refid;
             global.requestedUser = guest?.refid;
         }

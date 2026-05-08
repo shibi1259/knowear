@@ -5,7 +5,9 @@ import { endpoints } from '@/app/_constants/endpoints/endpoints'
 type Props = {}
 
 const getAboutData = async () => {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${endpoints.about}`)
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${endpoints.about}`, {
+        next: { revalidate: 3600 }, // 1 hour cache for static about content
+    })
     return response.json()
 }
 

@@ -8,8 +8,6 @@ type Props = {
 };
 
 const HeroBanner = ({ widgetDetails }: any) => {
-  console.log("widgetDetails====>", widgetDetails);
-
   return (
     <>
       {/* h-[341px] lg:h-[calc(100vh_-_115px)] */}
@@ -48,6 +46,7 @@ const HeroBanner = ({ widgetDetails }: any) => {
           loop
           playsInline
           webkit-playsinline
+          preload="metadata"
           src={'/hero_video.mp4'}
           className="absolute top-0 left-0 w-full h-full object-cover"
         ></video>

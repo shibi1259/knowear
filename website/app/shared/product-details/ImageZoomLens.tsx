@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 
 interface ImageZoomLensProps {
   src: string;
@@ -76,12 +77,17 @@ const ImageZoomLens: React.FC<ImageZoomLensProps> = ({
   if (isMobile) {
     return (
       <div className="relative w-fit">
-        <img
+        <Image
           src={src}
           alt={alt}
           className="w-full h-full object-cover"
-          width={width}
-          height={height}
+          width={width || 800}
+          height={height || 600}
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 60vw"
+          loading="lazy"
+          quality={85}
+          placeholder="blur"
+          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/8A8A"
         />
       </div>
     );
@@ -98,12 +104,17 @@ const ImageZoomLens: React.FC<ImageZoomLensProps> = ({
         onMouseMove={handleMouseMove}
         ref={imageRef}
       >
-        <img
+        <Image
           src={src}
           alt={alt}
           className="w-full h-full object-cover"
-          width={width}
-          height={height}
+          width={width || 800}
+          height={height || 600}
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 60vw"
+          loading="lazy"
+          quality={85}
+          placeholder="blur"
+          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/8A8A"
         />
 
         {showZoom && (
@@ -118,13 +129,16 @@ const ImageZoomLens: React.FC<ImageZoomLensProps> = ({
               pointerEvents: 'none',
             }}
           >
-            <img
+            <Image
               src={src}
               alt={`${alt} zoomed`}
               className="absolute select-none"
+              width={width * zoomLevel}
+              height={height * zoomLevel}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 60vw"
+              quality={95}
+              priority={true}
               style={{
-                width: `${width * zoomLevel}px`,
-                height: `${height * zoomLevel}px`,
                 maxWidth: 'none',
                 left: `${zoomPosition.x}px`,
                 top: `${zoomPosition.y}px`,

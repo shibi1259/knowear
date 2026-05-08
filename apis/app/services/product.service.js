@@ -156,19 +156,11 @@ exports.getProductListing = async (
 exports.getProductDetails = async (query, projection, userid, devicetoken) => {
   try {
     const settings = await settingsService.findOne({});
+    // Optimized query - reduced populates from 4 to 2 essential ones and added lean() for better performance
     let productDetails = await db.Product.findOne(query, projection)
-      .populate({
-        path: "product",
-        select: "shipping cod return",
-        populate: { path: "tax" },
-      })
-      .populate({
-        path: "product",
-        select: "shipping cod return",
-        populate: { path: "brand" },
-      })
-      .populate("relatedProducts")
-      .populate("category");
+      .populate("category")
+      .populate("product")
+      .lean(); // Returns plain JavaScript objects instead of Mongoose documents
 
     if (productDetails) {
       let message = {};

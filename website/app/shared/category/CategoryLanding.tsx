@@ -1,5 +1,6 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import api from "@/config/api.interceptor";
 import { endpoints } from "@/app/_constants/endpoints/endpoints";
 import ImageSlider from "./productSection";
@@ -267,19 +268,31 @@ const LeggingsCategoryPage: React.FC<any> = ({ categorySlug }) => {
       {currentTab?.isMainCategory && (
         <div className="mb-6 md:mb-8 relative overflow-hidden ">
           <div className="relative aspect-[16/9]">
-            <img
+            <Image
               src={categoryLandingPage?.mainImage}
               alt="Category main image"
               className="w-full md:h-full  h-[242px] object-cover"
+              width={1200}
+              height={675}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 80vw"
+              loading="lazy"
+              quality={85}
+              placeholder="blur"
+              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/8A8A"
             />
 
             {/* Feature Icons */}
             <div className="absolute top-2 right-2  md:top-4 md:right-4 flex flex-col gap-2 md:gap-4 max-w-[120px] md:max-w-[140px]">
               <div className="p-2 md:p-3 rounded-lg flex flex-col items-center text-center">
-                <img
+                <Image
                   src={categoryLandingPage?.firstIcon}
                   alt={categoryLandingPage?.firstIconTitle}
                   className="w-8 h-8 md:w-10 md:h-10 mb-1 md:mb-2 object-contain"
+                  width={40}
+                  height={40}
+                  sizes="(max-width: 768px) 40px, 40px"
+                  loading="lazy"
+                  quality={90}
                 />
                 <h3 className="font-semibold text-xs md:text-sm text-white">
                   {categoryLandingPage?.firstIconTitle}
@@ -293,10 +306,15 @@ const LeggingsCategoryPage: React.FC<any> = ({ categorySlug }) => {
               </div>
 
               <div className="p-2 md:p-3 rounded-lg flex flex-col items-center text-center">
-                <img
+                <Image
                   src={categoryLandingPage?.secondIcon}
                   alt={categoryLandingPage?.secondIconTitle}
                   className="w-8 h-8 md:w-10 md:h-10 mb-1 md:mb-2 object-contain"
+                  width={40}
+                  height={40}
+                  sizes="(max-width: 768px) 40px, 40px"
+                  loading="lazy"
+                  quality={90}
                 />
                 <h3 className="font-semibold text-xs md:text-sm text-white">
                   {categoryLandingPage?.secondIconTitle}

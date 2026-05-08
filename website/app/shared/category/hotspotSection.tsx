@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { Heart } from "lucide-react";
-import Image from "next/image";
 import { endpoints } from "@/app/_constants/endpoints/endpoints";
 import api from "@/config/api.interceptor";
 import { StateContext } from "@/providers/state/StateContext";
@@ -195,12 +195,19 @@ const ProductBanner = ({ data }: any) => {
     >
       <div className="relative flex flex-col">
         <div className="relative w-full lg:h-auto lg:max-w-full md:h-[655px]">
-          <img
+          <Image
             src={data?.interactiveImage}
             alt="Woman in black workout clothes"
             className={`w-full h-full ${
               isMobile ? "h-[408px] object-cover object-center" : "object-cover"
             }`}
+            width={1200}
+            height={800}
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 80vw"
+            loading="lazy"
+            quality={85}
+            placeholder="blur"
+            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/8A8A"
           />
 
           {data?.hotspots.map((hotspot: any) => (

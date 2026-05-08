@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const ThreeBannerLayout = ({data}:any) => {
@@ -30,10 +31,17 @@ const ThreeBannerLayout = ({data}:any) => {
       {/* Mobile: Single slide view */}
       <div className="block md:hidden relative w-full min-h-[328px]">
         <div className="absolute inset-0">
-          <img
+          <Image
             src={data?.images2[currentSlide]}
             alt={`Banner ${currentSlide + 1}`}
             className="w-full h-full object-cover"
+            width={800}
+            height={400}
+            sizes="100vw"
+            loading="lazy"
+            quality={85}
+            placeholder="blur"
+            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/8A8A"
           />
         </div>
         
@@ -55,10 +63,17 @@ const ThreeBannerLayout = ({data}:any) => {
       <div className="hidden md:grid grid-cols-3 gap-[39px] min-h-[328px]">
         {data?.images2.map((src:any, index:any) => (
           <div key={index} className="relative overflow-hidden">
-            <img
+            <Image
               src={src}
               alt={`Banner ${index + 1}`}
               className="w-full h-full object-cover"
+              width={600}
+              height={400}
+              sizes="(max-width: 768px) 0vw, (max-width: 1200px) 33vw, 33vw"
+              loading="lazy"
+              quality={85}
+              placeholder="blur"
+              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/8A8A"
             />
           </div>
         ))}

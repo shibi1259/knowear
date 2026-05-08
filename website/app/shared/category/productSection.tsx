@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Slide {
@@ -49,10 +50,17 @@ const SingleSlider: React.FC<any> = ({ slides, className = "" }:any) => {
                 className="absolute pt-[16px] gap-[16px] object-contain  w-full h-full"
                 style={{ left: `${index * 100}%` }}
               >
-                <img
+                <Image
                   src={`https://knowearcommerce.s3.ap-south-1.amazonaws.com/${slide}`}
                   alt={slides?.name}
                   className="w-full h-full object-contain"
+                  width={800}
+                  height={600}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 60vw"
+                  loading="lazy"
+                  quality={85}
+                  placeholder="blur"
+                  blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/8A8A"
                 />
                 {slides?.isNew && (
                   <div className="absolute top-4 left-4 bg-green-800 text-white px-2 py-1 text-sm">
