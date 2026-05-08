@@ -1,0 +1,166 @@
+# ==============================================================================
+# Root .gitignore for knowear-new (apis + website)
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Dependencies
+# ------------------------------------------------------------------------------
+node_modules/
+**/node_modules/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.yarn/install-state.gz
+jspm_packages/
+
+# ------------------------------------------------------------------------------
+# Build output / generated
+# ------------------------------------------------------------------------------
+.next/
+out/
+build/
+dist/
+.cache/
+.parcel-cache/
+.turbo/
+.swc/
+.vercel/
+.netlify/
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# ------------------------------------------------------------------------------
+# Logs
+# ------------------------------------------------------------------------------
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+apis/logs/
+
+# ------------------------------------------------------------------------------
+# Testing / coverage
+# ------------------------------------------------------------------------------
+coverage/
+.nyc_output/
+
+# ------------------------------------------------------------------------------
+# Env files (NEVER commit secrets)
+# ------------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env-sample.template
+
+# Belt-and-braces explicit entries for this project
+apis/.env
+apis/.env.*
+website/.env
+website/.env.*
+
+# ------------------------------------------------------------------------------
+# Secrets / keys / certs
+# ------------------------------------------------------------------------------
+*.pem
+*.key
+*.crt
+*.cer
+*.p12
+*.pfx
+*.jks
+*.keystore
+id_rsa
+id_rsa.*
+id_ed25519
+id_ed25519.*
+*.ppk
+*_rsa
+*_rsa.pub
+*.pub
+secrets/
+secret.json
+credentials.json
+service-account*.json
+serviceAccount*.json
+firebase-adminsdk*.json
+google-services.json
+GoogleService-Info.plist
+
+# Project-specific hard-coded secret files (refactor to env vars; see notes)
+apis/config/db_config/firebaseConfig.js
+
+# ------------------------------------------------------------------------------
+# Runtime uploads / user data
+# ------------------------------------------------------------------------------
+apis/uploads/
+uploads/
+
+# Generated CSV reports dumped at the apis/ root
+apis/*.csv
+
+# Stray scratch / personal notes
+apis/notes.txt
+website/daqeeq0404.pub
+website/*.pub
+**/README copy.md
+**/* copy.md
+**/* copy.*
+
+# ------------------------------------------------------------------------------
+# Editor / IDE
+# ------------------------------------------------------------------------------
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+.history/
+
+# Cursor
+.cursor/
+
+# ------------------------------------------------------------------------------
+# OS noise
+# ------------------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ------------------------------------------------------------------------------
+# Misc
+# ------------------------------------------------------------------------------
+*.bak
+*.backup
+*.old
+*.tmp
+*.temp
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+.nx/cache
+.nx/workspace-data

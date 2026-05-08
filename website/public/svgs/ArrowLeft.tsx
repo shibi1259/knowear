@@ -1,0 +1,30 @@
+import React from "react";
+
+const ArrowLeft = () => {
+  return (
+    <svg
+      width="30"
+      height="20"
+      viewBox="0 0 30 20"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M3.33203 10L28.3321 9.99959"
+        stroke="#141B34"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <path
+        d="M9.99935 1.66602L2.37312 9.29224C2.03979 9.62558 1.87312 9.79224 1.87312 9.99935C1.87312 10.2065 2.03979 10.3731 2.37312 10.7065L9.99935 18.3327"
+        stroke="#141B34"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  );
+};
+
+export default ArrowLeft;

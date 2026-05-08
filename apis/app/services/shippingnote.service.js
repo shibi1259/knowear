@@ -1,0 +1,37 @@
+const db = require('../db');
+
+exports.create = async (data) => {
+    try {
+        let response = new db.shippingNotes(data);
+        await response.save();
+        return response;
+    } catch (error) {
+        throw (error);
+    }
+};
+
+exports.findOne = async (query, projection = {}) => {
+    try {
+        let response = await db.shippingNotes.findOne(query, projection);
+        return response;
+    } catch (error) {
+        throw (error);
+    }
+};
+
+exports.update = async (query, data) => {
+    try {
+        let response = await db.shippingNotes.findOneAndUpdate(
+            query, 
+            { $set: data }, 
+            {
+                new: true,
+                upsert: false,
+                useFindAndModify: false
+            }
+        );
+        return response;
+    } catch (error) {
+        throw (error);
+    }
+};

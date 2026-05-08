@@ -1,0 +1,288 @@
+<div class="printer" style="display:flex; justify-content: center;">
+    <div id="printBtn" class="noPrint btn btn-primary" onclick="print('printWrapper')" style="background-color: black; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
+        Print invoice
+    </div>
+</div>
+
+<div
+    style="font-family: 'Josefin Sans', sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px;">
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Sen:wght@400..800&display=swap" rel="stylesheet"> -->
+  
+<link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <!-- Left Section: Logo and Store Information -->
+        <div style="flex: 1; display: flex; flex-direction: column; align-items: left; gap: 15px;">
+            <div style="width: 180px; ">
+                <img src="<%= base %><%= settings?.logo %>" style="width: 100%; height: auto;">
+            </div>
+            <div style="text-align: left; font-size: 16px;">
+                <p style="margin: 0;  font-size: 13px;"> <%= settings?.primaryAddress %></p>
+            </div>
+            <div>
+                <div class="mt-2"><%= helpDetails?.countryCode %> <%= helpDetails?.phone %></div>
+                <div class="mt-2"><%= helpDetails?.email %></div>
+            </div>
+        </div>
+        <!-- <pre><%= JSON.stringify(orderDetails, null, 2) %></pre> -->
+        <!-- Right Section: Invoice Information -->
+        <div style="flex: 1; text-align: right;">
+            <p style="margin: 0; font-size: 25px; font-weight: bold;">Invoice #<%= orderDetails?.invoiceNo %></p>
+            <!-- <p style="margin: 0; font-size: 16px;">Order <%= orderDetails?.orderNo %></p> -->
+             
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-bottom: 5px; font-weight: bold; font-size: 18px;">TAX INVOICE</div>
+
+    <div style="display: flex; justify-content: space-between; border-top: 1px solid #ddd; padding-top: 20px;">
+        <div style="width: 40%;">
+            <address style="line-height: 17px;">
+                <strong>Tax Registration No:</strong><br>
+                <p style="text-transform: uppercase; margin-top: 0px !important; font-style: normal;">104640793600003</p>
+            </address>
+            <!-- <div style="text-align: left; font-size: 16px;">
+                <div style="font-weight: bold;">Store Address:</div>
+                <p style="margin: 0;  font-size: 13px;"> The Light Commercial Tower, 16, 5 street - 3  </p>
+                <p style="margin: 0; font-size: 13px;">Hadaeq Mohammed Bin Rashid - Arjan - Al Barsha South - Dubai</p>
+                <p style="margin: 0; font-size: 13px;">(+971) 4 570 4377</p>
+                <p style="margin: 0; font-size: 13px;">info@knowear.me</p>
+            </div> -->
+
+
+            <div style="font-weight: bold; margin-top: 20px; margin-bottom: 20px; line-height: 17px;">Payment Method:<br>
+                <span style="font-weight: 500; font-size: 13px;">
+                    <%= orderDetails?.paymentMethod %>
+                </span>
+            </div>
+
+            <div style="font-weight: bold; margin-top: 30px;">
+                Billed To:<br>
+                <span style="font-weight: 500; font-size: 13px;">
+                    <%= orderDetails?.customerId?.name || 
+                        (orderDetails?.address?.firstname + ' ' + orderDetails?.address?.lastname) || 
+                        (guestDetails?.firstname + ' ' + guestDetails?.lastname) %>,
+                </span>
+                <br>
+                <span style="font-weight: 500; font-size: 13px;">
+                    <%= orderDetails?.customerId?.email || orderDetails?.address?.email  %>,
+                </span>
+                <br>
+                <span style="font-weight: 500; font-size: 13px;">
+                    <%= orderDetails?.customerId?.countryCode || orderDetails?.address?.countryCode || guestDetails?.countryCode %> 
+                    <%= orderDetails?.customerId?.mobile || orderDetails?.address?.mobile || guestDetails?.mobile %>,
+                </span>
+                <br>
+                <span style="font-weight: 500; font-size: 13px;">
+                    <% if (orderDetails?.address?.deliveryAddress || orderDetails?.address?.additionalAddress) { %>
+                        <!-- Delivery address format -->
+                        <%= orderDetails?.address?.type %>,
+
+                        <%= orderDetails?.address?.additionalAddress %>,
+                        <%= orderDetails?.address?.deliveryAddress %>,
+                        
+                        <!-- <%= orderDetails?.address?.postalCode %>, -->
+                        <!-- <%= orderDetails?.address?.city %>, -->
+                        <%= orderDetails?.address?.state %>,
+                        <%= orderDetails?.address?.countryName %>
+                    <% } else { %>
+                        <!-- Standard address format -->
+                        <%= orderDetails?.address?.type %>,
+                        <%= orderDetails?.address?.streetAddress %>,
+                        <%= orderDetails?.address?.aptSuiteUnit %>,
+                        <%= orderDetails?.address?.postalCode %>,
+                        <%= orderDetails?.address?.city %>,
+                        <%= orderDetails?.address?.state %>,
+                        <%= orderDetails?.address?.countryName %>
+                    <% } %>
+                </span>
+            </div>
+        </div>
+
+        <div style="width: 40%; text-align: right;">
+            <div style="font-weight: bold; margin-top: 20px; margin-bottom: 20px;">Order Date:<br>
+                <span style="font-weight: 500; font-size: 13px;">
+                    <%= getDeliveryDate(orderDetails?.createdAt) %>
+                </span>
+            </div>
+            <div style="font-weight: bold;">Shipped To:<br>
+                <div style="font-weight: 500; font-size: 13px;">
+                    <%= orderDetails?.address?.firstname + ' ' + orderDetails?.address?.lastname %>,
+                </div>
+                
+                <div style="font-weight: 500; font-size: 13px;">
+                    <!-- <%= orderDetails?.customerId?.email || guestDetails?.email || orderDetails?.address?.email %> -->
+                </div>
+                
+                <div style="font-weight: 500; font-size: 13px;">
+                    <%=orderDetails?.address?.countryCode %> 
+                    <%= orderDetails?.address?.mobile %>,
+                    <%= orderDetails?.address?.email %> ,
+                </div>
+                
+                <div style="font-weight: 500; font-size: 13px;">
+                    <% if (orderDetails?.address?.deliveryAddress || orderDetails?.address?.additionalAddress) { %>
+                        <!-- Delivery/Alternative Address Format -->
+                        <!-- <%= orderDetails?.address?.firstname + ' ' + orderDetails?.address?.lastname %>, -->
+                        <%= orderDetails?.address?.type %>,
+                        <!-- <%= orderDetails?.address?.countryCode %> <%= orderDetails?.address?.mobile %>, -->
+                        <!-- <%= orderDetails?.address?.email %>, -->
+                        <% if (orderDetails?.address?.additionalAddress) { %>
+                            <%= orderDetails?.address?.additionalAddress %>,
+                        <% } %>
+                        <% if (orderDetails?.address?.deliveryAddress) { %>
+                            <%= orderDetails?.address?.deliveryAddress %>,
+                        <% } %>
+                       
+                        <!-- <%= orderDetails?.address?.postalCode %>, -->
+                        <%= orderDetails?.address?.state %>,
+                        <!-- <%= orderDetails?.address?.city %>, -->
+                        <%= orderDetails?.address?.countryName %>
+                    <% } else { %>
+                        <!-- Standard Address Format -->
+                        <%= orderDetails?.address?.type %>,
+                        <%= orderDetails?.address?.streetAddress %>,
+                        <% if (orderDetails?.address?.aptSuiteUnit) { %>
+                            <%= orderDetails?.address?.aptSuiteUnit %>,
+                        <% } %>
+                        <%= orderDetails?.address?.postalCode %>,
+                        <!-- <%= orderDetails?.address?.city %>, -->
+                        <%= orderDetails?.address?.state %>,
+                        <%= orderDetails?.address?.countryName %>
+                    <% } %>
+                </div>
+            </div>
+           
+        </div>
+    </div>
+
+    <div style="margin-top: 20px; border-top: 2px solid #ddd;">
+        <h3>Order summary</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th style="border-top: 1px solid #ddd; padding: 8px; text-align: left;">Item</th>
+                    <th style="border-top: 1px solid #ddd; padding: 8px; text-align: center;">Quantity</th>
+                    <th style="border-top: 1px solid #ddd; padding: 8px; text-align: center;">Price</th>
+                    <th style="border-top: 1px solid #ddd; padding: 8px; text-align: right; white-space: nowrap;">Total
+                        in AED</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% orderDetails?.products?.forEach(product => { %>
+                <tr>
+                    <td style="border-top: 1px solid #ddd; padding: 8px; text-align: left;">
+                        <div style="display: flex; align-items: start;">
+                            <img src="<%= base %><%= product?.productId?.thumbnail %>" alt="<%= product?.productId?.name %>"
+                                style="width: 50px; height: 50px; border-radius: 5px; margin-right: 10px;" />
+                            <div>
+                                <div style="font-size: 14px; text-transform: uppercase; font-weight: 100;"><%= product?.productId?.name %>
+                                </div>
+                                <div style="font-size: 14px; font-weight: 100;">SKU: <%= product?.productId?.sku %></div>
+                                <!-- <div style="font-size: 14px; font-weight: 100; color: #6c757d; opacity: 0.6;">
+                                    {{attributes}}</div> -->
+                            </div>
+                        </div>
+                    </td>
+                    <td style="border-top: 1px solid #ddd; padding: 8px; text-align: center;"> <%= product?.quantity %></td>
+                    <td style="border-top: 1px solid #ddd; padding: 8px; text-align: center;"><%= (Number(product?.pricePerUnit) || 0).toFixed(2) %></td>
+                    <td style="border-top: 1px solid #ddd; padding: 8px; text-align: right;"><%= product?.total %></td>
+                </tr>
+                <% }); %>
+            </tbody>
+
+            <tfoot>
+                <tr>
+                    <td rowspan="7" colspan="2">
+                    </td>
+                </tr>
+
+                <tr>
+                    <td colspan="1"
+                        style="border-top: 1px solid #ddd; padding: 8px; text-align: center; font-weight: 600;">Sub
+                        Total</td>
+                    <td style="border-top: 1px solid #ddd; padding: 8px; text-align: right;"><%= settings?.currency %> <%= orderDetails.total %>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="1"
+                        style="border-top: 1px solid #ddd; padding: 8px; text-align: center; font-weight: 600;">Shipping</td>
+                    <td style="border-top: 1px solid #ddd; padding: 8px; text-align: right;"><%= settings?.currency %> <%= orderDetails.shippingCharge %>
+                    </td>
+                </tr>
+
+                <% if (orderDetails.giftWrapTotal > 0) { %>
+                    <tr>
+                        <td colspan="1" style="border-top: 1px solid #ddd; padding: 8px; text-align: center; font-weight: 600;">Gift Wrap</td>
+                        <td style="border-top: 1px solid #ddd; padding: 8px; text-align: right;"><%= settings?.currency %> <%= orderDetails.giftWrapTotal %></td>
+                    </tr>
+                <% } %>
+                <!-- <tr>
+                    <td colspan="1"
+                        style="border-top: 1px solid #ddd; padding: 8px; text-align: center; font-weight: 600; white-space: nowrap;">
+                        Discount
+                    </td>
+                    <td style="border-top: 1px solid #ddd; padding: 8px; text-align: right;">
+                        - <%= settings?.currency %> <%= orderDetails?.discount %>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="1"
+                        style="border-top: 1px solid #ddd; padding: 8px; text-align: center; font-weight: 600;">
+                        VAT (Inclusive)
+                    </td>
+                    <td style="border-top: 1px solid #ddd; padding: 8px; text-align: right;">
+                        <%= orderDetails.tax %>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="1"
+                        style="border-top: 1px solid #ddd; padding: 8px; text-align: center; font-weight: 600;">
+                        Total
+                    </td>
+                    <td style="border-top: 1px solid #ddd; padding: 8px; text-align: right;">
+                        <%= settings?.currency %> <%= orderDetails?.wholeTotal %>
+                    </td>
+                </tr> -->
+                
+                <tr>
+                    <td colspan="1"
+                        style="border-top: 1px solid #ddd; padding: 8px; text-align: center; font-weight: 600; white-space: nowrap;">
+                        Discount
+                    </td>
+                    <td style="border-top: 1px solid #ddd; padding: 8px; text-align: right;">
+                        - <%= settings?.currency %> <%= orderDetails?.discount %>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="1"
+                        style="border-top: 1px solid #ddd; padding: 8px; text-align: center; font-weight: 600; white-space: nowrap;">
+                        VAT  5%
+                    </td>
+                    <td style="border-top: 1px solid #ddd; padding: 8px; text-align: right;">
+                        <%= ((orderDetails?.total - orderDetails?.discount) * 0.05).toFixed(2) %>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="1"
+                        style="border-top: 1px solid #ddd; padding: 8px; text-align: center; font-weight: 600;">
+                        Total
+                    </td>
+                    <td style="border-top: 1px solid #ddd; padding: 8px; text-align: right;">
+                        <%= settings?.currency %> <%= orderDetails?.wholeTotal %>
+                    </td>
+                </tr>
+                
+            </tfoot>
+        </table>
+    </div>
+
+    <div style="margin-top: 20px; font-size: 0.9em; color: #666;">
+        <div class="mt-5 text-center " style="text-align: center;">
+            This is a computer generated document and does not require signature. Terms & Conditions Apply.
+            <br class="mt-4">
+            Thanks for shopping with us! We appreciate your order.
+            
+        </div>
+    </div>
+</div>

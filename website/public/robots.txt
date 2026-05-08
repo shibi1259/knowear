@@ -1,0 +1,19 @@
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Disallow admin and private routes
+Disallow: /api/
+Disallow: /_next/
+Disallow: /static/
+Disallow: /private/
+Disallow: /checkout/
+Disallow: /account/
+Disallow: /profile/
+Disallow: /cart/
+Disallow: /orders/
+Disallow: /search/
+
+
+# Sitemap location
+Sitemap: https://knowear.com/sitemap.xml

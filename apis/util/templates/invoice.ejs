@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@100;200;300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        .invoice {
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            font-family: 'Manrope', sans-serif;
+        }
+
+        .header {
+            text-align: center;
+            font-size: 24px;
+        }
+
+        .invoice-details {
+            margin-top: 20px;
+        }
+
+        .invoice-details table {
+            width: 100%;
+        }
+
+        .invoice-details th,
+        .invoice-details td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .total {
+            margin-top: 20px;
+            text-align: right;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="invoice">
+        <div class="header">
+            <h1>Invoice</h1>
+        </div>
+        <div class="invoice-details">
+            <table>
+                <tr>
+                    <th>Invoice Number:</th>
+                    <td>
+                        <%= invoiceNumber %>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Order Number:</th>
+                    <td>
+                        <%= orderNumber %>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Invoice Date:</th>
+                    <td>
+                        <%= invoiceDate %>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Order Date:</th>
+                    <td>
+                        <%= orderDate %>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="line-items">
+            <table>
+                <tr>
+                    <th>&nbsp;</th>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>Unit Price</th>
+                    <th>Total</th>
+                </tr>
+                <% for (let i=0; i < products.length; i++) { %>
+                    <tr>
+                        <td>
+                            <img src="<%=products[i].image %>" alt="Product" height="50px" width="50px">
+                        </td>
+                        <td>
+                            <%= products[i].name %>
+                        </td>
+                        <td>
+                            <%= products[i].quantity %>
+                        </td>
+                        <td>
+                            <%= products[i].price %>
+                        </td>
+                        <td>
+                            <%= products[i].total %>
+                        </td>
+                    </tr>
+                    <% } %>
+            </table>
+        </div>
+        <div class="total">
+            <p>
+                <strong>Total Amount:</strong>
+                <%= orderTotal %>
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>
