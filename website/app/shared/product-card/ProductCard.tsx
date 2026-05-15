@@ -178,9 +178,17 @@ import { useRouter } from "next/navigation";
 const ProductCard = ({
   productDetails,
   wishlist = false,
+  priority = false,
 }: {
   productDetails: ProductCardProps;
   wishlist?: boolean;
+  /**
+   * When true, the main thumbnail loads eagerly with `fetchpriority="high"`.
+   * Pass `true` only for cards rendered above the fold (typically the first
+   * row of a grid or the first 1-2 slides of a carousel). All other cards
+   * keep the default lazy behaviour.
+   */
+  priority?: boolean;
 }) => {
   const router = useRouter();
   const { wishlistDetails, getWishlistDetails, getCartDetails } =
@@ -272,9 +280,11 @@ const ProductCard = ({
             src={productDetails.thumbnail.thumbnail}
             alt={productDetails.name.text}
             className="w-full object-cover transition-all duration-300"
-            sizes="(max-width: 640px) 100vw, (max-width:768px) 50vw, 33vw"
-            loading="lazy"
+            sizes="(max-width: 640px) 50vw, (max-width:768px) 33vw, 25vw"
             quality={75}
+            {...(priority
+              ? { priority: true, fetchPriority: "high" as const }
+              : { loading: "lazy" as const })}
           />
         </Link>
 

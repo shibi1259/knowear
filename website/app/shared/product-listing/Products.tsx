@@ -41,7 +41,8 @@ const Products = (props: Props) => {
           {props.products.map((product: ProductCardProps, index: number) => {
             return (
               <div key={index}>
-                <ProductCard productDetails={product} />
+                {/* First row above the fold (4 desktop, 2 mobile) loads eagerly */}
+                <ProductCard productDetails={product} priority={index < 4} />
               </div>
             );
           })}

@@ -26,6 +26,7 @@ export default function CartList({
             getCartDetails={getCartDetails}
             product={product}
             isCart={isCart}
+            priority={index === 0}
           />
         );
       })}

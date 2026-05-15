@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import React from "react";
 import { cache } from "react";
+import ReactDOM from "react-dom";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import ProductDetails from "@/app/shared/product-details/ProductDetails";
@@ -81,6 +82,19 @@ const page = async ({ params }: { params: { slug: string } }) => {
 
   if (!productResponse?.result?.productDetails) {
     notFound();
+  }
+
+  // Preload the first product image so the browser starts fetching the LCP
+  // candidate as early as the HTML is parsed, well before React hydrates.
+  // Falls back silently if no image media exists.
+  const firstImage = productResponse.result.productDetails.medias?.find(
+    (m: any) => m?.type === "image"
+  );
+  if (firstImage?.url) {
+    ReactDOM.preload(firstImage.url, {
+      as: "image",
+      fetchPriority: "high",
+    });
   }
 
   return (

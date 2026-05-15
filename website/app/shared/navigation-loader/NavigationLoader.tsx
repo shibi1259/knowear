@@ -1,8 +1,13 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import AppLoader from "../app-loader/AppLoader";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useLoading } from "@/providers/loading/LoadingProvider";
+
+function routeKeyFromNext(pathname: string, searchParams: URLSearchParams) {
+  const q = searchParams.toString();
+  return q ? `${pathname}?${q}` : pathname;
+}
 
 interface NavigationLoaderProps {
   isLoading?: boolean;
@@ -15,6 +20,10 @@ const NavigationLoader: React.FC<NavigationLoaderProps> = ({
   const { isLoading: globalLoading } = useLoading();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  // Latest URL React / Next considers active. Updated every render so we can
+  // compare with `window.location` inside `popstate` without stale closures.
+  const nextRouteKeyRef = useRef("");
+  nextRouteKeyRef.current = routeKeyFromNext(pathname, searchParams);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -50,15 +59,36 @@ const NavigationLoader: React.FC<NavigationLoaderProps> = ({
     };
 
     const handlePopState = () => {
+      const historyKey =
+        window.location.pathname + window.location.search;
+      const nextKey = nextRouteKeyRef.current;
+      // Next.js App Router often applies the history entry and updates
+      // `usePathname` / `useSearchParams` *before* our `popstate` listener
+      // runs. In that case `setIsNavigating(true)` would fire *after* the
+      // clear effect — pathname does not change again, and the spinner never
+      // clears. Skip showing the loader when the browser URL already matches
+      // React’s route.
+      if (historyKey === nextKey) {
+        setIsNavigating(false);
+        return;
+      }
       setIsNavigating(true);
+    };
+
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        setIsNavigating(false);
+      }
     };
 
     document.addEventListener("click", handleLinkClick);
     window.addEventListener("popstate", handlePopState);
+    window.addEventListener("pageshow", handlePageShow);
 
     return () => {
       document.removeEventListener("click", handleLinkClick);
       window.removeEventListener("popstate", handlePopState);
+      window.removeEventListener("pageshow", handlePageShow);
     };
   }, []);
 

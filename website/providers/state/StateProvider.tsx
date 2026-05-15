@@ -61,7 +61,11 @@ export const StateProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
-    getWishlistDetails();
+    // Wishlist requires a logged-in user. Skip the network round-trip for
+    // guests — the API would return 401 anyway, so this is a pure save.
+    if (Cookies.get("access_token")) {
+      getWishlistDetails();
+    }
   }, []);
 
   const updateCounts = (dt?: string) => {

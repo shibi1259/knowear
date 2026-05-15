@@ -123,6 +123,11 @@ const SnapShots = (props: Props) => {
                     src={media.url}
                     alt={`Product image ${index + 1}`}
                     className="aspect-square object-cover w-full h-full"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 50vw"
+                    quality={85}
+                    {...(index === 0
+                      ? { priority: true, fetchPriority: "high" as const }
+                      : { loading: "lazy" as const })}
                   />
                 ) : media.type === "video" && (
                   <div className="aspect-square w-full">

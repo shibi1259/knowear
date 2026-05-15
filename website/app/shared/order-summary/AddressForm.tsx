@@ -33,7 +33,6 @@ import Cookies from "js-cookie";
 import api from "@/config/api.interceptor";
 import { endpoints } from "@/app/_constants/endpoints/endpoints";
 import { toast } from "@/hooks/use-toast";
-import countries from "world-countries";
 import {
   Select,
   SelectContent,
@@ -42,7 +41,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MapPin, Search } from "lucide-react";
-import _ from "lodash";
+import debounce from "lodash/debounce";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
 import AddressConfirmationModal from "@/components/orders/ConfirmCheckout";
@@ -88,13 +87,33 @@ const addressSchema = guestToken
 
 type AddressFormValues = z.infer<typeof addressSchema>;
 
-const countryOptions = countries
-  .map((country) => ({
-    label: country.name.common,
-    value: country.cca2,
-    code: country.idd.root + (country.idd.suffixes?.[0] || ""),
-  }))
-  .sort((a, b) => a.label.localeCompare(b.label));
+type CountryOption = { label: string; value: string; code: string };
+
+// `world-countries` is ~250 KB JSON. Defer it so the rest of checkout becomes
+// interactive immediately. The list hydrates in the background and is ready
+// before the user opens the country picker.
+let countryOptionsCache: CountryOption[] | null = null;
+let countryOptionsPromise: Promise<CountryOption[]> | null = null;
+
+const loadCountryOptions = (): Promise<CountryOption[]> => {
+  if (countryOptionsCache) return Promise.resolve(countryOptionsCache);
+  if (!countryOptionsPromise) {
+    countryOptionsPromise = import("world-countries").then((mod) => {
+      const list = (mod.default as any[])
+        .map((country: any) => ({
+          label: country.name.common,
+          value: country.cca2,
+          code: country.idd.root + (country.idd.suffixes?.[0] || ""),
+        }))
+        .sort((a: CountryOption, b: CountryOption) =>
+          a.label.localeCompare(b.label)
+        );
+      countryOptionsCache = list;
+      return list;
+    });
+  }
+  return countryOptionsPromise;
+};
 
 const emirateStates = [
   "Abu Dhabi",
@@ -157,11 +176,25 @@ const AddressForm = forwardRef<AddressFormHandle, AddressFormProps>(
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
+    const [countryOptions, setCountryOptions] = useState<CountryOption[]>(
+      () => countryOptionsCache ?? []
+    );
     const infoWindowRef = useRef<any>();
     const isFirstWatchCall = useRef(true); // ✅ Top-level ref
 
     const [addressToConfirm, setAddressToConfirm] =
       useState<AddressFormValues | null>(null);
+
+    useEffect(() => {
+      if (countryOptionsCache) return;
+      let cancelled = false;
+      loadCountryOptions().then((list) => {
+        if (!cancelled) setCountryOptions(list);
+      });
+      return () => {
+        cancelled = true;
+      };
+    }, []);
 
     const form = useForm<AddressFormValues>({
       resolver: zodResolver(addressSchema),
@@ -877,7 +910,7 @@ const AddressForm = forwardRef<AddressFormHandle, AddressFormProps>(
 
     // Debounce search
     const debouncedSearch = useCallback(
-      _.debounce((query: string) => {
+      debounce((query: string) => {
         if (query.length < 3) {
           setSearchResults([]);
           setShowSearchResults(false);

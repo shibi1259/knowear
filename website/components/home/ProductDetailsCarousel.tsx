@@ -39,7 +39,7 @@ const Carousel: React.FC<PropType> = (props) => {
             products.map((product: any, index: number) => (
               <div className="embla__slide" key={index}>
                 <div className="embla__slide__number">
-                  <ProductCard productDetails={product} />
+                  <ProductCard productDetails={product} priority={index < 2} />
                 </div>
               </div>
             ))

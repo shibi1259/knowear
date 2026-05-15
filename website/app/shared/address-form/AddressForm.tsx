@@ -16,8 +16,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { MapPin, Search } from "lucide-react";
-import _ from "lodash";
-import countries from "world-countries";
+import debounce from "lodash/debounce";
 import {
   Select,
   SelectContent,
@@ -59,11 +58,33 @@ const addressSchema = z.object({
 
 type AddressFormValues = z.infer<typeof addressSchema>;
 
-const countryOptions = countries.map((country) => ({
-  label: country.name.common,
-  value: country.cca2,
-  code: country.idd.root + (country.idd.suffixes?.[0] || ""),
-})).sort((a: any, b: any) => a.label.localeCompare(b.label));
+type CountryOption = { label: string; value: string; code: string };
+
+// `world-countries` is ~250 KB JSON. We pull it in the background after first
+// paint so the rest of the form is interactive immediately. The user only
+// notices the list once they open the country dropdown – by then it's loaded.
+let countryOptionsCache: CountryOption[] | null = null;
+let countryOptionsPromise: Promise<CountryOption[]> | null = null;
+
+const loadCountryOptions = (): Promise<CountryOption[]> => {
+  if (countryOptionsCache) return Promise.resolve(countryOptionsCache);
+  if (!countryOptionsPromise) {
+    countryOptionsPromise = import("world-countries").then((mod) => {
+      const list = (mod.default as any[])
+        .map((country: any) => ({
+          label: country.name.common,
+          value: country.cca2,
+          code: country.idd.root + (country.idd.suffixes?.[0] || ""),
+        }))
+        .sort((a: CountryOption, b: CountryOption) =>
+          a.label.localeCompare(b.label)
+        );
+      countryOptionsCache = list;
+      return list;
+    });
+  }
+  return countryOptionsPromise;
+};
 
 const emirateStates = [
   "Abu Dhabi",
@@ -100,8 +121,22 @@ const AddressForm: React.FC<AddressFormProps> = ({
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [countryOptions, setCountryOptions] = useState<CountryOption[]>(
+    () => countryOptionsCache ?? []
+  );
   const infoWindowRef = useRef<any>();
-  const isFirstWatchCall = useRef(true); 
+  const isFirstWatchCall = useRef(true);
+
+  useEffect(() => {
+    if (countryOptionsCache) return;
+    let cancelled = false;
+    loadCountryOptions().then((list) => {
+      if (!cancelled) setCountryOptions(list);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const form = useForm<AddressFormValues>({
     resolver: zodResolver(addressSchema),
@@ -691,7 +726,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
 
   // Debounce search
   const debouncedSearch = useCallback(
-    _.debounce((query: string) => {
+    debounce((query: string) => {
       if (query.length < 3) {
         setSearchResults([]);
         setShowSearchResults(false);

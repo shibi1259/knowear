@@ -19,6 +19,8 @@ type Props = {
   wishlistDetails: Array<ProductCardProps>;
   minicart?: boolean;
   productRemoveHandler?: (e: any) => void;
+  /** When true, the line-item image loads eagerly as a likely LCP candidate. */
+  priority?: boolean;
 };
 
 const CartProduct = ({
@@ -28,6 +30,7 @@ const CartProduct = ({
   getCartDetails,
   minicart,
   productRemoveHandler,
+  priority = false,
 }: Props) => {
   const [quantity, setQuantity] = React.useState(String(product.quantity));
   const [isWishlisted, setIsWishlisted] = React.useState(false);
@@ -97,6 +100,10 @@ const CartProduct = ({
               src={product.medias.thumbnail}
               alt={product?.name?.text}
               className="w-[107px] h-full md:h-full md:w-[174px] object-cover"
+              sizes="(max-width: 768px) 107px, 174px"
+              {...(priority
+                ? { priority: true, fetchPriority: "high" as const }
+                : { loading: "lazy" as const })}
             />
           ) : (
             <Image
@@ -105,6 +112,10 @@ const CartProduct = ({
               src={product.medias.thumbnail}
               alt="Banner"
               className="object-cover w-[107px] h-[144px] md:w-full md:h-full"
+              sizes="(max-width: 768px) 107px, 260px"
+              {...(priority
+                ? { priority: true, fetchPriority: "high" as const }
+                : { loading: "lazy" as const })}
             />
           )}
         </Link>

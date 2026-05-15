@@ -1,105 +1,122 @@
-"use client";
+import { cookies } from "next/headers";
+import React from "react";
+
 import { endpoints } from "@/app/_constants/endpoints/endpoints";
-import ProductListing from "@/app/shared/product-listing/ProductListing";
-import api from "@/config/api.interceptor";
-import { useParams, useSearchParams } from "next/navigation";
-import React, { useEffect } from "react";
+import ProductsClient from "../ProductsClient";
 
-type Props = {};
+type SearchParams = { [key: string]: string | string[] | undefined };
 
-const Products = (props: Props) => {
-  const params = useParams();
-  const searchParams= useSearchParams()
-  const [products, setProducts] = React.useState<any>([]);
-  const [filters, setFilters] = React.useState({});
-  const [filterData, setFilterData] = React.useState<any>({
-    sort: "2",
-  });
-  const [isLastPage, setIsLastPage] = React.useState(false);
-  const [totalResults, setTotalResults] = React.useState(0);
-  const [page, setPage] = React.useState(1);
-  const [limit, setLimit] = React.useState(24);
-  const [isLoading, setIsLoading] = React.useState(false);
-  
+type FetchedInitial = {
+  products: any[];
+  filters: any;
+  isLastPage: boolean;
+  totalResults: number;
+};
 
-  const fetchProducts = async () => {
-    setIsLoading(true);
-    const attributes = [];
-    if (filterData.color) {
-      attributes.push({ title: "Color", value: filterData.color });
+async function fetchInitialProducts(
+  slug: string[],
+  searchParams: SearchParams
+): Promise<FetchedInitial> {
+  try {
+    const token = cookies().get("access_token")?.value;
+    const deviceToken = cookies().get("device_token")?.value;
+
+    const searchCategoryRaw = searchParams?.category;
+    const searchCategory =
+      typeof searchCategoryRaw === "string"
+        ? searchCategoryRaw.split("%25")
+        : [];
+    const combinedCategories = [...slug, ...searchCategory].filter(Boolean);
+
+    const search =
+      typeof searchParams?.search === "string" ? searchParams.search : "";
+
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}${endpoints.productsByCategory}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Devicetoken: deviceToken ?? "",
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+        body: JSON.stringify({
+          category: combinedCategories,
+          priceFrom: undefined,
+          priceTo: undefined,
+          limit: 24,
+          page: 1,
+          sort: "2",
+          attributes: [],
+          search,
+        }),
+        next: { revalidate: 60 },
+      }
+    );
+
+    if (!res.ok) {
+      return {
+        products: [],
+        filters: {},
+        isLastPage: true,
+        totalResults: 0,
+      };
     }
-    if (filterData.size) {
-      attributes.push({ title: "Size", value: filterData.size });
-    }
-    const slugCategory = Array.isArray(params?.slug) ? params.slug : [params.slug];
-    const searchCategory = searchParams?.get('category')?.split('%25') || [];
-    const combinedCategories = [...slugCategory, ...searchCategory].filter(Boolean);
-    api
-      .post(endpoints.productsByCategory, {
-        category:combinedCategories||[],
-        priceFrom: filterData?.low,
-        priceTo: filterData?.high,
-        limit,
-        page,
-        sort: filterData?.sort || "2",
-        attributes:attributes,
-        search:searchParams?.get('search')||''
-      })
-      .then((response: any) => {
-        if (response.data.errorCode == 0) {
-          if (page === 1) {
-            setProducts(response.data.result.products?.product_items);
-          } else {
-            setProducts((prev: any) => [
-              ...prev,
-              ...response.data.result.products?.product_items,
-            ]);
-          }
-          setFilters({
-            color: response?.data?.result.filters?.attributes?.find(
-              (item: any) => item._id === "Color"
-            ),
-            sizes: response?.data?.result.filters?.attributes?.find(
-              (item: any) => item._id === "Size"
-            ),
-            price: response?.data?.result.filters?.price,
-            category: response?.data?.result.filters?.categories,
-          });
-          setTotalResults(response.data.result?.products?.total_items);
-          setIsLastPage(response.data.result?.products?.last_page);
-          setIsLoading(false);
-        } else {
-          setIsLoading(false);
-        }
-      })
-      .catch((error: any) => {
-        setIsLoading(false);
-        setIsLastPage(true)
-      });
-  };
 
-  useEffect(() => {
-    fetchProducts();
-    // eslint-disable-next-line
-  }, [filterData, page,searchParams]);
-console.log("params?.slugparams?.slug",params?.slug);
+    const json = await res.json();
+    if (json?.errorCode !== 0) {
+      return {
+        products: [],
+        filters: {},
+        isLastPage: true,
+        totalResults: 0,
+      };
+    }
+
+    const result = json?.result;
+    const productsRoot = result?.products;
+    const attributes = result?.filters?.attributes || [];
+
+    return {
+      products: productsRoot?.product_items || [],
+      filters: {
+        color: attributes.find((item: any) => item._id === "Color"),
+        sizes: attributes.find((item: any) => item._id === "Size"),
+        price: result?.filters?.price,
+        category: result?.filters?.categories,
+      },
+      isLastPage: !!productsRoot?.last_page,
+      totalResults: productsRoot?.total_items || 0,
+    };
+  } catch {
+    return {
+      products: [],
+      filters: {},
+      isLastPage: true,
+      totalResults: 0,
+    };
+  }
+}
+
+const ProductsPage = async ({
+  params,
+  searchParams,
+}: {
+  params: { slug: string[] };
+  searchParams: SearchParams;
+}) => {
+  const slug = Array.isArray(params?.slug) ? params.slug : [params.slug];
+  const initial = await fetchInitialProducts(slug, searchParams || {});
 
   return (
-    <div>
-      <ProductListing
-        params={params?.slug}
-        products={products}
-        filters={filters}
-        filterData={filterData}
-        setFilterData={setFilterData}
-        isLastPage={isLastPage}
-        isLoading={isLoading}
-        setIsLoading={setIsLoading}
-        setPage={setPage}
-        setLimit={setLimit}
-      />
-    </div>
+    <ProductsClient
+      slug={slug}
+      initialProducts={initial.products}
+      initialFilters={initial.filters}
+      initialIsLastPage={initial.isLastPage}
+      initialTotalResults={initial.totalResults}
+    />
   );
 };
 
-export default Products;
+export default ProductsPage;

@@ -69,7 +69,8 @@ const Carousel: React.FC<PropType> = (props) => {
         <div className="grid grid-cols-2 gap-4">
           {props?.widgetDetails?.products.slice(0, 4).map((product: any, index: number) => (
             <div key={index} className="w-full">
-              <ProductCard productDetails={product} />
+              {/* Mobile 2x2 grid: all 4 cards are above the fold */}
+              <ProductCard productDetails={product} priority={index < 4} />
             </div>
           ))}
         </div>
@@ -88,7 +89,7 @@ const Carousel: React.FC<PropType> = (props) => {
                 key={index}
               >
                 <div className="embla__slide__content">
-                  <ProductCard productDetails={product} />
+                  <ProductCard productDetails={product} priority={index < 2} />
                 </div>
               </div>
             ))}

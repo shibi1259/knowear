@@ -34,7 +34,7 @@ const dbName = process.env.MONGODB_DATABASE || 'admin';  // Set a default databa
 let connectionString = `mongodb+srv://${dbUser}:${dbPassword}@${dbHost}:${dbPort}/${dbName}`;
 
 if (process.env.ENV == 'DEV') {
-  connectionString = `mongodb://${dbUser}:${dbPassword}@${dbHost}:${dbPort}/${dbName}`;
+  connectionString = `mongodb://${dbUser}:${dbPassword}@${dbHost}:${dbPort}/${dbName}?authSource=admin`;
 }
 
 mongoose.connect(connectionString, {
@@ -42,7 +42,9 @@ mongoose.connect(connectionString, {
   useNewUrlParser: true,
   family: 4
 }).then(() => {
-  console.log("DB Connection Established");
+  const conn = mongoose.connection;
+
+  console.log("DB Connection Established",  conn.host , conn.name);
 }).catch((err) => {
   console.error("DB Connection Failed :: " + err);
 });

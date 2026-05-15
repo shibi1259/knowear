@@ -9,12 +9,20 @@ import {
 import userIcon from "../../../public/icons/user.svg";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import React, { act, Suspense, useContext, useEffect, useState } from "react";
-import Login from "../login/Login";
-import SocialMediaLogin from "../socialmedia-login/SocialMediaLogin";
-import Register from "../register/Register";
+import dynamic from "next/dynamic";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { StateContext } from "@/providers/state/StateContext";
+
+// Defer the auth forms (and the heavy Firebase SDK they pull in) until the
+// user actually opens the sidebar. Radix Sheet does not mount its content
+// while closed, so these chunks never ship on initial page load.
+const Login = dynamic(() => import("../login/Login"), { ssr: false });
+const Register = dynamic(() => import("../register/Register"), { ssr: false });
+const SocialMediaLogin = dynamic(
+  () => import("../socialmedia-login/SocialMediaLogin"),
+  { ssr: false }
+);
 
 const AuthSidebar = (props: any) => {
   const { open, setOpen } = props.props;

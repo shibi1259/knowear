@@ -339,6 +339,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import Logo from "../../../public/logo.svg";
 import Hamburger from "../../../public/icons/hamburger.svg";
@@ -352,18 +353,28 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { usePathname } from "next/navigation";
 import Cookies from "js-cookie";
 
-import ForgotPasswordPopUp from "../forgot-password-popup/ForgotPasswordPopUp";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import SearchPopup from "./SearchPopup";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import SideBar from "./SideBar";
-import ResetPassword from "../reset-password/ResetPassword";
 import api from "@/config/api.interceptor";
 import { endpoints } from "@/app/_constants/endpoints/endpoints";
+
+// Lazy-loaded popups / panels — code-split out of the main Header bundle.
+// They only download when the user actually opens them (search, side menu,
+// forgot-password modal, reset-password modal). Keeps the initial JS smaller.
+const SearchPopup = dynamic(() => import("./SearchPopup"), { ssr: false });
+const SideBar = dynamic(() => import("./SideBar"), { ssr: false });
+const ForgotPasswordPopUp = dynamic(
+  () => import("../forgot-password-popup/ForgotPasswordPopUp"),
+  { ssr: false }
+);
+const ResetPassword = dynamic(
+  () => import("../reset-password/ResetPassword"),
+  { ssr: false }
+);
 type Props = {
   deviceType: string;
 };

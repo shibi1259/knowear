@@ -2,33 +2,44 @@ import type { Metadata } from "next";
 import dynamic from "next/dynamic";
 import { Jost } from "next/font/google";
 import "./globals.css";
-// import PreHeader from "./shared/pre-header/PreHeader";
-// import Header from "./shared/header/Header";
-// import Footer from "./shared/footer/Footer";
-// import MobileFooter from "./shared/mobile-footer/MobileFooter";
 import ThemeProvider from "@/providers/theme/ThemeProvider";
 import { StateProvider } from "@/providers/state/StateProvider";
 import { LoadingProvider } from "@/providers/loading/LoadingProvider";
-import { Toaster } from "@/components/ui/toaster";
 import { cookies } from "next/headers";
 import FacebookPixel from "@/components/layout/FacebookPixel";
-import { GoogleAnalytics, GoogleTagManager } from "@next/third-parties/google";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import { endpoints } from "./_constants/endpoints/endpoints";
 import Script from "next/script";
-// import NewFooter from "./shared/footer/NewFooter";
 import SnapchatPixel from "@/components/layout/SnapchatPixel";
 
 import PreHeader from "./shared/pre-header/PreHeader";
 import Header from "./shared/header/Header";
 import NewFooter from "./shared/footer/NewFooter";
-import MobileFooter from "./shared/mobile-footer/MobileFooter";
-import NavigationLoader from "./shared/navigation-loader/NavigationLoader";
+
+// Lazy-loaded layout helpers — none of these are visible on first paint:
+//  - NavigationLoader only renders during route transitions
+//  - MobileFooter is hidden on desktop (md+)
+//  - Toaster only displays content when a toast is enqueued
+// Code-splitting them removes their hydration cost from the initial paint.
+const NavigationLoader = dynamic(
+  () => import("./shared/navigation-loader/NavigationLoader"),
+  { ssr: false }
+);
+const MobileFooter = dynamic(
+  () => import("./shared/mobile-footer/MobileFooter"),
+  { ssr: false }
+);
+const Toaster = dynamic(
+  () => import("@/components/ui/toaster").then((m) => m.Toaster),
+  { ssr: false }
+);
 
 const jost = Jost({
   subsets: ["latin"],
   weight: ["400"], // Single weight for fastest mobile FCP
   display: "swap", // Faster font loading with fallback
-  preload: false, // Add preload for mobile performance
+  preload: true, // Preload the font alongside HTML so swap happens earlier (kills FOUT-driven CLS)
+  adjustFontFallback: true, // Tune the fallback font's metrics so the layout barely shifts when Jost arrives
   variable: "--font-jost", // CSS variable for faster access
 });
 
@@ -95,9 +106,13 @@ export default function RootLayout({
         {process.env.NEXT_PUBLIC_PRODUCTION !== "true" && (
           <meta name="robots" content="noindex,nofollow" />
         )}
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link rel="preconnect" href="https://knowear.s3.ap-south-1.amazonaws.com" />
+        {/* Preconnect to the API origin we hit immediately on first render. */}
         <link rel="preconnect" href={process.env.NEXT_PUBLIC_API_URL || ""} />
+
+        {/* DNS-prefetch (cheaper than preconnect) for the S3 image host so the
+            browser is ready by the time hero/product images decode, but does
+            not waste a connection slot if the page has none. */}
+        <link rel="dns-prefetch" href="//knowear.s3.ap-south-1.amazonaws.com" />
 
         {/* DNS prefetch for non-critical third-party resources */}
         <link rel="dns-prefetch" href="//www.googletagmanager.com" />
@@ -127,8 +142,8 @@ export default function RootLayout({
           `
         }} />
         
-        {/* Google Tag Manager - deferred so it does not block initial render */}
-        <Script id="google-tag-manager" strategy="afterInteractive">
+        {/* Google Tag Manager - deferred to lazyOnload so it does not block initial render or hydration */}
+        <Script id="google-tag-manager" strategy="lazyOnload">
           {`
             (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
             new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -230,7 +245,7 @@ export default function RootLayout({
           `}
         </Script>
       </body>
-      {/* Google Analytics - Deferred for 90+ Lighthouse score */}
+      {/* Google Analytics - via @next/third-parties (afterInteractive strategy) */}
       <GoogleAnalytics gaId={"G-JC8K33G6JR"} />
     </html>
   );
